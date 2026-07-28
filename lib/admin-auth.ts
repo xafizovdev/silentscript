@@ -15,11 +15,7 @@ export function isAdminPassword(value: string | null): boolean {
   return expected.length === received.length && timingSafeEqual(expected, received);
 }
 
-/**
- * Vercel normally creates BLOB_READ_WRITE_TOKEN. If a custom environment
- * prefix was selected while connecting the store, the key may be renamed.
- * Detect both forms without exposing the token to the browser.
- */
+/** Legacy long-lived token support for older Blob connections. */
 export function getBlobReadWriteToken(): string | undefined {
   const standard = process.env.BLOB_READ_WRITE_TOKEN?.trim();
   if (standard) return standard;
@@ -27,7 +23,6 @@ export function getBlobReadWriteToken(): string | undefined {
   for (const [key, rawValue] of Object.entries(process.env)) {
     const value = rawValue?.trim();
     if (!value) continue;
-
     const likelyBlobKey = key.includes("BLOB") && key.endsWith("READ_WRITE_TOKEN");
     const likelyBlobValue = value.startsWith("vercel_blob_rw_");
     if (likelyBlobKey || likelyBlobValue) return value;
@@ -36,6 +31,21 @@ export function getBlobReadWriteToken(): string | undefined {
   return undefined;
 }
 
+/**
+ * New Vercel Blob project connections use short-lived OIDC credentials.
+ * In that mode there is no BLOB_READ_WRITE_TOKEN; Vercel exposes the store
+ * metadata and the latest @vercel/blob SDK authenticates automatically.
+ */
 export function blobStorageConfigured(): boolean {
-  return Boolean(getBlobReadWriteToken());
+  const legacyToken = Boolean(getBlobReadWriteToken());
+  const oidcConnection = Boolean(
+    process.env.BLOB_STORE_ID?.trim() && process.env.BLOB_WEBHOOK_PUBLIC_KEY?.trim(),
+  );
+  return legacyToken || oidcConnection;
+}
+
+export function blobAuthMode(): "legacy-token" | "oidc" | "missing" {
+  if (getBlobReadWriteToken()) return "legacy-token";
+  if (process.env.BLOB_STORE_ID?.trim() && process.env.BLOB_WEBHOOK_PUBLIC_KEY?.trim()) return "oidc";
+  return "missing";
 }
