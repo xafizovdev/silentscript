@@ -1,7 +1,7 @@
 export type Locale = "uz" | "en" | "ru";
-export type ProductCategory = "cover" | "notebook" | "set";
-export type PageStyle = "lined" | "grid" | "dotted" | "blank";
 export type LocalizedText = Record<Locale, string>;
+export type ProductCategory = "cover" | "notebook" | "set";
+export type PageType = "lined" | "dotted" | "grid" | "blank";
 
 export type CatalogColor = {
   id: string;
@@ -19,11 +19,13 @@ export type CatalogProduct = {
   basePrice: number;
   image: string;
   size: "A5" | "A6";
+  badge?: LocalizedText;
   colors: CatalogColor[];
   supportsInsert: boolean;
   insertPrice?: number;
   insertPages?: number;
   pages?: number;
+  pageType?: PageType;
   giftBoxPrice?: number;
 };
 
@@ -33,54 +35,59 @@ export type Catalog = {
   products: CatalogProduct[];
 };
 
-const locales: Locale[] = ["uz", "en", "ru"];
-const categories: ProductCategory[] = ["cover", "notebook", "set"];
+export type CartConfiguration = {
+  colorId: string;
+  includeNotebook: boolean;
+  pageType: PageType;
+  initial: string;
+  giftBox: boolean;
+};
 
-function isLocalizedText(value: unknown): value is LocalizedText {
-  if (!value || typeof value !== "object") return false;
-  const item = value as Record<string, unknown>;
-  return locales.every((locale) => typeof item[locale] === "string");
+export type CartItem = {
+  key: string;
+  productId: string;
+  quantity: number;
+  unitPrice: number;
+  configuration: CartConfiguration;
+};
+
+export function formatPrice(value: number, currency: string): string {
+  const safe = Number.isFinite(value) ? Math.max(0, Math.round(value)) : 0;
+  return `${safe.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ")} ${currency}`;
 }
 
-function isColor(value: unknown): value is CatalogColor {
-  if (!value || typeof value !== "object") return false;
-  const item = value as Partial<CatalogColor>;
-  return typeof item.id === "string" && isLocalizedText(item.name) && typeof item.hex === "string";
+export function normalizeInitial(value: string): string {
+  const letter = Array.from(value.normalize("NFC").replace(/[^\p{L}]/gu, ""))[0] ?? "";
+  return letter.toUpperCase();
 }
 
-function isProduct(value: unknown): value is CatalogProduct {
-  if (!value || typeof value !== "object") return false;
-  const item = value as Partial<CatalogProduct>;
+export function productPrice(product: CatalogProduct, configuration: CartConfiguration): number {
   return (
-    typeof item.id === "string" &&
-    categories.includes(item.category as ProductCategory) &&
-    typeof item.active === "boolean" &&
-    isLocalizedText(item.name) &&
-    isLocalizedText(item.description) &&
-    typeof item.basePrice === "number" &&
-    Number.isFinite(item.basePrice) &&
-    typeof item.image === "string" &&
-    (item.size === "A5" || item.size === "A6") &&
-    Array.isArray(item.colors) &&
-    item.colors.length > 0 &&
-    item.colors.every(isColor) &&
-    typeof item.supportsInsert === "boolean"
+    product.basePrice +
+    (product.supportsInsert && configuration.includeNotebook ? product.insertPrice ?? 0 : 0) +
+    (configuration.initial ? 15000 : 0) +
+    (configuration.giftBox ? product.giftBoxPrice ?? 0 : 0)
   );
 }
 
 export function isCatalog(value: unknown): value is Catalog {
   if (!value || typeof value !== "object") return false;
-  const item = value as Partial<Catalog>;
+  const candidate = value as Partial<Catalog>;
   return (
-    typeof item.version === "number" &&
-    Number.isFinite(item.version) &&
-    typeof item.updatedAt === "string" &&
-    Array.isArray(item.products) &&
-    item.products.every(isProduct)
+    typeof candidate.version === "number" &&
+    typeof candidate.updatedAt === "string" &&
+    Array.isArray(candidate.products) &&
+    candidate.products.every((product) => {
+      if (!product || typeof product !== "object") return false;
+      const item = product as Partial<CatalogProduct>;
+      return (
+        typeof item.id === "string" &&
+        (item.category === "cover" || item.category === "notebook" || item.category === "set") &&
+        typeof item.active === "boolean" &&
+        typeof item.basePrice === "number" &&
+        typeof item.image === "string" &&
+        Array.isArray(item.colors)
+      );
+    })
   );
-}
-
-export function formatPrice(value: number, currency: string): string {
-  const amount = Math.max(0, Math.round(value)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-  return `${amount} ${currency}`;
 }
