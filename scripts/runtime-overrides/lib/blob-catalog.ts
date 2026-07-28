@@ -1,12 +1,13 @@
 import "server-only";
-import { list, put, type ListBlobResultBlob } from "@vercel/blob";
+import { list, put } from "@vercel/blob";
 import defaultCatalog from "@/data/catalog.json";
 import { isCatalog, type Catalog } from "@/lib/catalog";
 import { blobStorageConfigured } from "@/lib/admin-auth";
 
 const CATALOG_PREFIX = "silent-script/catalog/";
+type ListedBlob = Awaited<ReturnType<typeof list>>["blobs"][number];
 
-function newest(blobs: ListBlobResultBlob[]): ListBlobResultBlob | undefined {
+function newest(blobs: ListedBlob[]): ListedBlob | undefined {
   return [...blobs]
     .filter((blob) => blob.pathname.endsWith(".json"))
     .sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())[0];
