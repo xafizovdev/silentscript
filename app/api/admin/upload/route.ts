@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { put } from "@vercel/blob";
-import { getBlobReadWriteToken, isAdminPassword } from "@/lib/admin-auth";
+import { blobStorageConfigured, isAdminPassword } from "@/lib/admin-auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,10 +25,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Admin sessiyasi tasdiqlanmadi." }, { status: 401 });
   }
 
-  const token = getBlobReadWriteToken();
-  if (!token) {
+  if (!blobStorageConfigured()) {
     return NextResponse.json(
-      { error: "Vercel Blob hali ulanmagan. Blob store aynan silentscript project va Production environment bilan ulanganini tekshiring." },
+      { error: "Vercel Blob hali ulanmagan yoki joriy deployment Blob ulanishini ko‘rmayapti." },
       { status: 503 },
     );
   }
@@ -45,7 +44,6 @@ export async function POST(request: Request) {
       addRandomSuffix: true,
       contentType: file.type,
       cacheControlMaxAge: 31536000,
-      token,
     });
     return NextResponse.json({ url: blob.url, pathname: blob.pathname });
   } catch (error) {
