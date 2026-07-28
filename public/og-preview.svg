@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+<rect width="1200" height="630" fill="#f4efe6"/>
+<circle cx="960" cy="120" r="260" fill="#dce3cb"/>
+<circle cx="120" cy="590" r="280" fill="#e8ddcf"/>
+<rect x="700" y="115" width="300" height="410" rx="28" fill="#a8b889" transform="rotate(7 850 320)"/>
+<path d="M756 225h188M756 275h150M756 325h176" stroke="#645044" stroke-width="14" stroke-linecap="round" transform="rotate(7 850 320)"/>
+<text x="110" y="250" font-family="Georgia,serif" font-size="92" fill="#4f4138">silent script.</text>
+<text x="116" y="330" font-family="Arial,sans-serif" font-size="32" fill="#75665a">Pages for quiet minds.</text>
+<text x="116" y="410" font-family="Arial,sans-serif" font-size="24" fill="#75665a">Personal notebooks · Telegram orders</text>
+</svg>
