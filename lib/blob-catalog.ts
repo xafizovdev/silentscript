@@ -2,7 +2,7 @@ import "server-only";
 import { list, put } from "@vercel/blob";
 import defaultCatalog from "@/data/catalog.json";
 import { isCatalog, type Catalog } from "@/lib/catalog";
-import { getBlobReadWriteToken } from "@/lib/admin-auth";
+import { blobStorageConfigured } from "@/lib/admin-auth";
 
 const CATALOG_PREFIX = "silent-script/catalog/";
 type ListedBlob = Awaited<ReturnType<typeof list>>["blobs"][number];
@@ -14,11 +14,10 @@ function newest(blobs: ListedBlob[]): ListedBlob | undefined {
 }
 
 export async function readPublishedCatalog(): Promise<Catalog> {
-  const token = getBlobReadWriteToken();
-  if (!token) return defaultCatalog as Catalog;
+  if (!blobStorageConfigured()) return defaultCatalog as Catalog;
 
   try {
-    const result = await list({ prefix: CATALOG_PREFIX, limit: 100, token });
+    const result = await list({ prefix: CATALOG_PREFIX, limit: 100 });
     const blob = newest(result.blobs);
     if (!blob) return defaultCatalog as Catalog;
 
@@ -36,8 +35,7 @@ export async function readPublishedCatalog(): Promise<Catalog> {
 }
 
 export async function publishCatalog(value: Catalog): Promise<{ catalog: Catalog; url: string }> {
-  const token = getBlobReadWriteToken();
-  if (!token) throw new Error("BLOB_STORAGE_NOT_CONFIGURED");
+  if (!blobStorageConfigured()) throw new Error("BLOB_STORAGE_NOT_CONFIGURED");
   if (!isCatalog(value)) throw new Error("INVALID_CATALOG");
 
   const catalog: Catalog = {
@@ -51,7 +49,6 @@ export async function publishCatalog(value: Catalog): Promise<{ catalog: Catalog
     addRandomSuffix: false,
     contentType: "application/json; charset=utf-8",
     cacheControlMaxAge: 60,
-    token,
   });
   return { catalog, url: blob.url };
 }
