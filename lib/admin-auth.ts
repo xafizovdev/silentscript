@@ -15,6 +15,27 @@ export function isAdminPassword(value: string | null): boolean {
   return expected.length === received.length && timingSafeEqual(expected, received);
 }
 
+/**
+ * Vercel normally creates BLOB_READ_WRITE_TOKEN. If a custom environment
+ * prefix was selected while connecting the store, the key may be renamed.
+ * Detect both forms without exposing the token to the browser.
+ */
+export function getBlobReadWriteToken(): string | undefined {
+  const standard = process.env.BLOB_READ_WRITE_TOKEN?.trim();
+  if (standard) return standard;
+
+  for (const [key, rawValue] of Object.entries(process.env)) {
+    const value = rawValue?.trim();
+    if (!value) continue;
+
+    const likelyBlobKey = key.includes("BLOB") && key.endsWith("READ_WRITE_TOKEN");
+    const likelyBlobValue = value.startsWith("vercel_blob_rw_");
+    if (likelyBlobKey || likelyBlobValue) return value;
+  }
+
+  return undefined;
+}
+
 export function blobStorageConfigured(): boolean {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN?.trim());
+  return Boolean(getBlobReadWriteToken());
 }
