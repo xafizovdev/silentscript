@@ -628,17 +628,29 @@ export default function HomePage() {
                 ))}
               </div>
             </fieldset>
-            <fieldset>
+            <fieldset className="initial-field">
               <legend>{t.custom.coverText}</legend>
-              <input
-                value={custom.personalization}
-                maxLength={15}
-                onChange={(event) => setCustom((current) => ({ ...current, personalization: event.target.value }))}
-                placeholder={t.custom.placeholder}
-              />
-              <small>
-                {custom.personalization.length}/15 {t.custom.characters}
-              </small>
+              <div className="initial-input-row">
+                <input
+                  id="cover-initial"
+                  name="coverInitial"
+                  value={custom.personalization}
+                  maxLength={1}
+                  inputMode="text"
+                  autoComplete="off"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                  aria-describedby="cover-initial-help"
+                  onChange={(event) => {
+                    const letter = Array.from(event.target.value.normalize("NFC").replace(/[^\p{L}]/gu, ""))[0] ?? "";
+                    setCustom((current) => ({ ...current, personalization: letter.toUpperCase() }));
+                  }}
+                  placeholder={t.custom.placeholder}
+                />
+                <span id="cover-initial-help" className="initial-counter" aria-live="polite">
+                  {Array.from(custom.personalization).length}/1 {t.custom.characters}
+                </span>
+              </div>
             </fieldset>
             <fieldset>
               <legend>{t.custom.giftBox}</legend>
@@ -803,8 +815,16 @@ export default function HomePage() {
         <div className="section-shell footer-grid">
           <div className="footer-brand">
             <div className="footer-logo">
-              <Image src="/brand-avatar.svg" alt="silent script." width={58} height={58} />
-              <span>silent script.</span>
+              <span className="footer-avatar-frame">
+                <Image
+                  src="/brand-avatar.svg"
+                  alt="silent script. brend avatari"
+                  width={82}
+                  height={82}
+                  sizes="82px"
+                />
+              </span>
+              <span className="footer-wordmark">silent script.</span>
             </div>
             <p>{t.footer.description}</p>
           </div>

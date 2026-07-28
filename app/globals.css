@@ -540,3 +540,39 @@ summary:focus-visible {
   .desktop-nav { display: none; }
   .mobile-menu-button { display: inline-grid; }
 }
+
+
+/* Silent Script one-letter personalization and exact brand avatar */
+.initial-input-row { display: flex; align-items: center; gap: 12px; }
+.initial-field input {
+  width: 88px;
+  min-height: 54px;
+  padding: 8px 12px;
+  text-align: center;
+  text-transform: uppercase;
+  font-family: var(--serif);
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: .04em;
+}
+.initial-field input::placeholder { color: rgba(43, 36, 30, .34); }
+.initial-counter { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.footer-avatar-frame {
+  width: 82px;
+  height: 82px;
+  flex: 0 0 82px;
+  display: inline-grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 10px;
+  background: #b9c88d;
+  box-shadow: 0 14px 34px rgba(25,22,16,.18);
+}
+.footer-avatar-frame img { width: 100%; height: 100%; object-fit: cover; border-radius: 0; }
+.footer-wordmark { line-height: 1; }
+@media (max-width: 520px) {
+  .footer-logo { align-items: center; }
+  .footer-avatar-frame { width: 72px; height: 72px; flex-basis: 72px; }
+  .footer-wordmark { font-size: 25px; }
+}

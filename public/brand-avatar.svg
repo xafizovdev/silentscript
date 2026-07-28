@@ -1,6 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-<rect width="512" height="512" rx="256" fill="#f4efe6"/>
-<path d="M118 332c72-28 112-84 135-169 37 26 80 45 140 48-20 77-80 137-164 153-41 8-78 1-111-32Z" fill="#a6b77f"/>
-<path d="M167 320c74-42 128-99 164-174" fill="none" stroke="#6b5648" stroke-width="18" stroke-linecap="round"/>
-<text x="256" y="425" text-anchor="middle" font-family="Georgia,serif" font-size="56" fill="#554438">silent script.</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-label="silent script.">
+  <rect x="0" y="0" width="20" height="320" fill="#5b493c"/>
+  <rect x="20" y="0" width="20" height="320" fill="#b5c78d"/>
+  <rect x="40" y="0" width="20" height="320" fill="#5b493c"/>
+  <rect x="60" y="0" width="20" height="320" fill="#b5c78d"/>
+  <rect x="80" y="0" width="20" height="320" fill="#5b493c"/>
+  <rect x="100" y="0" width="20" height="320" fill="#b5c78d"/>
+  <rect x="120" y="0" width="20" height="320" fill="#5b493c"/>
+  <rect x="140" y="0" width="20" height="320" fill="#b5c78d"/>
+  <rect x="160" y="0" width="20" height="320" fill="#5b493c"/>
+  <rect x="180" y="0" width="20" height="320" fill="#b5c78d"/>
+  <rect x="200" y="0" width="20" height="320" fill="#5b493c"/>
+  <rect x="220" y="0" width="20" height="320" fill="#b5c78d"/>
+  <rect x="240" y="0" width="20" height="320" fill="#5b493c"/>
+  <rect x="260" y="0" width="20" height="320" fill="#b5c78d"/>
+  <rect x="280" y="0" width="20" height="320" fill="#5b493c"/>
+  <rect x="300" y="0" width="20" height="320" fill="#b5c78d"/>
+  <text x="160" y="172" text-anchor="middle" fill="#fffdf8" font-family="Courier New, Courier, monospace" font-size="28" font-weight="700" letter-spacing="-1">silent script.</text>
 </svg>

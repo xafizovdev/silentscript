@@ -12,3 +12,7 @@
 - Added customer name, phone, address and comment fields.
 - Added responsive language controls, keyboard Escape handling and improved focus states.
 - Added multilingual 404 content.
+
+## Brand avatar and one-letter personalization
+- Uses the uploaded Silent Script artwork for favicon and footer branding.
+- Limits cover personalization to one uppercase letter in UZ, EN and RU.
