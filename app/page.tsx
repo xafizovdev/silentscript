@@ -1,1221 +1,181 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import Image from "next/image";
-import NotebookVisual from "@/components/NotebookVisual";
-import Reveal from "@/components/Reveal";
-import { coverColors, products, type Product } from "@/data/products";
+import defaultCatalog from "@/data/catalog.json";
 import {
-  localeOptions,
-  translations,
+  formatPrice,
+  isCatalog,
+  normalizeInitial,
+  productPrice,
+  type CartConfiguration,
+  type CartItem,
+  type Catalog,
+  type CatalogProduct,
   type Locale,
-  type PageStyle,
-} from "@/data/site-copy";
-import { formatPrice } from "@/lib/format";
-import {
-  ArrowIcon,
-  BagIcon,
-  CheckIcon,
-  CloseIcon,
-  CopyIcon,
-  GiftIcon,
-  LeafIcon,
-  MenuIcon,
-  MinusIcon,
-  PackageIcon,
-  PencilIcon,
-  PlusIcon,
-  SearchIcon,
-  SparkIcon,
-  TelegramIcon,
-  TrashIcon,
-  UserIcon,
-} from "@/components/Icons";
+  type PageType,
+  type ProductCategory,
+} from "@/lib/catalog";
 
-type CustomState = {
-  size: "A5" | "A6";
-  colorIndex: number;
-  pages: PageStyle;
-  personalization: string;
-  giftBox: boolean;
-};
+const TELEGRAM_ORDER = "thatswriter";
+const TELEGRAM_CHANNEL = "silentscriptuz";
+const CART_KEY = "silent-script-cart-v4";
+const LOCALE_KEY = "silent-script-locale";
 
-type ProductCartItem = {
-  key: string;
-  kind: "product";
-  productId: string;
-  price: number;
-  quantity: number;
-};
+const ui = {
+  uz: {
+    currency: "so‘m", home: "Bosh sahifa", shop: "Do‘kon", covers: "Charm g‘iloflar", notebooks: "Bloknotlar", about: "Brend haqida",
+    eyebrow: "CHARM · QOG‘OZ · XOTIRJAMLIK", title: "Fikrlaringiz uchun charm g‘iloflar va bloknotlar.",
+    intro: "Tabiiy charm g‘ilofni alohida yoki almashtiriladigan ichki daftar bilan tanlang. Rang, sahifa turi va bitta bosh harfni o‘zingiz moslang.",
+    see: "Mahsulotlarni ko‘rish", order: "Telegram orqali buyurtma", collection: "SILENT COLLECTION", collectionTitle: "Uzoq vaqt siz bilan qoladigan buyumlar.",
+    collectionText: "G‘ilof, ichki daftar va personalizatsiyani bitta joyda tanlang. Narx har bir tanlovga qarab avtomatik yangilanadi.",
+    all: "Barchasi", cover: "Charm g‘iloflar", notebook: "Ichki daftarlar", set: "To‘plamlar", customize: "Tanlash", from: "dan",
+    color: "Charm rangi", insert: "Ichiga daftar qo‘shilsinmi?", yesInsert: "Ha, daftar bilan", noInsert: "Yo‘q, faqat g‘ilof",
+    page: "Sahifa turi", pages: { lined: "Chiziqli", dotted: "Nuqtali", grid: "Katakli", blank: "Oq" },
+    initial: "Muqovadagi bosh harf", initialHint: "Faqat 1 ta harf. Ixtiyoriy.", gift: "Sovg‘a qutisi", yes: "Ha", no: "Yo‘q",
+    add: "Savatga qo‘shish", total: "Jami", cart: "Savat", empty: "Savatingiz hozircha bo‘sh.", remove: "Olib tashlash",
+    checkout: "Buyurtmani rasmiylashtirish", name: "Ismingiz", phone: "Telefon raqamingiz", address: "Manzil", comment: "Izoh",
+    required: "Ism va telefon raqamini kiriting.", send: "@thatswriter ga yuborish", close: "Yopish",
+    why: "NEGA SILENT SCRIPT", whyTitle: "Bitta g‘ilof — ko‘p yangi sahifalar.", whyText: "Daftar tugagach, charm g‘ilof o‘zida qoladi. Faqat ichki daftarni almashtirasiz.",
+    benefits: [["Tabiiy charm", "Vaqt o‘tishi bilan o‘ziga xos patina hosil qiladi."], ["Almashtiriladigan daftar", "A5 yoki A6 refill tugagach yangisini qo‘yasiz."], ["Bitta bosh harf", "Minimal va xotirjam personalizatsiya."], ["Qulay buyurtma", "Barcha tanlovlar Telegram xabariga avtomatik tushadi."]],
+    footer: "Charm g‘iloflar, almashtiriladigan bloknotlar va xotirjam yozuv uchun puxta o‘ylangan detallar.", admin: "Admin panel",
+    greeting: "Assalomu alaykum! Silent Script’dan quyidagi buyurtmani bermoqchiman:", onlyCover: "faqat g‘ilof", withInsert: "ichki daftar bilan",
+  },
+  en: {
+    currency: "UZS", home: "Home", shop: "Shop", covers: "Leather covers", notebooks: "Notebooks", about: "About",
+    eyebrow: "LEATHER · PAPER · CALM", title: "Leather covers and notebooks made for your thoughts.",
+    intro: "Choose a natural leather cover alone or with a replaceable notebook insert. Personalize the colour, page style and one initial.",
+    see: "Explore products", order: "Order via Telegram", collection: "SILENT COLLECTION", collectionTitle: "Objects designed to stay with you.",
+    collectionText: "Choose the cover, notebook insert and personalization in one place. The price updates with every option.",
+    all: "All", cover: "Leather covers", notebook: "Notebook inserts", set: "Gift sets", customize: "Customize", from: "from",
+    color: "Leather colour", insert: "Add a notebook insert?", yesInsert: "Yes, with insert", noInsert: "No, cover only",
+    page: "Page style", pages: { lined: "Lined", dotted: "Dotted", grid: "Grid", blank: "Blank" },
+    initial: "Cover initial", initialHint: "One letter only. Optional.", gift: "Gift box", yes: "Yes", no: "No",
+    add: "Add to cart", total: "Total", cart: "Cart", empty: "Your cart is empty.", remove: "Remove",
+    checkout: "Continue to order", name: "Your name", phone: "Phone number", address: "Address", comment: "Note",
+    required: "Enter your name and phone number.", send: "Send to @thatswriter", close: "Close",
+    why: "WHY SILENT SCRIPT", whyTitle: "One cover — many new pages.", whyText: "When the notebook is full, keep the leather cover and replace only the insert.",
+    benefits: [["Natural leather", "It develops a unique patina over time."], ["Replaceable insert", "Replace the A5 or A6 notebook when it is full."], ["One initial", "Minimal and calm personalization."], ["Easy ordering", "Every option is added to the Telegram message automatically."]],
+    footer: "Leather covers, replaceable notebooks and thoughtful details for calm writing.", admin: "Admin panel",
+    greeting: "Hello! I would like to place the following Silent Script order:", onlyCover: "cover only", withInsert: "with notebook insert",
+  },
+  ru: {
+    currency: "сум", home: "Главная", shop: "Магазин", covers: "Кожаные обложки", notebooks: "Блокноты", about: "О бренде",
+    eyebrow: "КОЖА · БУМАГА · СПОКОЙСТВИЕ", title: "Кожаные обложки и блокноты для ваших мыслей.",
+    intro: "Выберите обложку отдельно или со сменным блокнотом. Настройте цвет, тип страниц и одну персональную букву.",
+    see: "Смотреть товары", order: "Заказать в Telegram", collection: "SILENT COLLECTION", collectionTitle: "Вещи, которые остаются с вами надолго.",
+    collectionText: "Выберите обложку, сменный блокнот и персонализацию. Цена меняется автоматически.",
+    all: "Все", cover: "Кожаные обложки", notebook: "Сменные блокноты", set: "Наборы", customize: "Настроить", from: "от",
+    color: "Цвет кожи", insert: "Добавить блокнот внутрь?", yesInsert: "Да, со сменным блокнотом", noInsert: "Нет, только обложка",
+    page: "Тип страниц", pages: { lined: "Линейка", dotted: "Точки", grid: "Клетка", blank: "Чистые" },
+    initial: "Буква на обложке", initialHint: "Только одна буква. Необязательно.", gift: "Подарочная коробка", yes: "Да", no: "Нет",
+    add: "Добавить в корзину", total: "Итого", cart: "Корзина", empty: "Корзина пока пуста.", remove: "Удалить",
+    checkout: "Оформить заказ", name: "Ваше имя", phone: "Номер телефона", address: "Адрес", comment: "Комментарий",
+    required: "Введите имя и номер телефона.", send: "Отправить @thatswriter", close: "Закрыть",
+    why: "ПОЧЕМУ SILENT SCRIPT", whyTitle: "Одна обложка — много новых страниц.", whyText: "Когда блокнот закончится, сохраните обложку и замените только внутренний блок.",
+    benefits: [["Натуральная кожа", "Со временем приобретает уникальную патину."], ["Сменный блокнот", "Замените A5 или A6 после заполнения."], ["Одна буква", "Минималистичная персонализация."], ["Удобный заказ", "Все параметры автоматически добавляются в Telegram." ]],
+    footer: "Кожаные обложки, сменные блокноты и продуманные детали для спокойных записей.", admin: "Админ-панель",
+    greeting: "Здравствуйте! Хочу оформить следующий заказ Silent Script:", onlyCover: "только обложка", withInsert: "со сменным блокнотом",
+  },
+} as const;
 
-type CustomCartItem = {
-  key: string;
-  kind: "custom";
-  price: number;
-  quantity: number;
-  config: CustomState;
-};
+type CategoryFilter = "all" | ProductCategory;
+type Customer = { name: string; phone: string; address: string; comment: string };
 
-type CartItem = ProductCartItem | CustomCartItem;
-
-type CustomerDetails = {
-  name: string;
-  phone: string;
-  address: string;
-  comment: string;
-};
-
-const CART_STORAGE_KEY = "silent-script-cart-v2";
-const LOCALE_STORAGE_KEY = "silent-script-locale";
-const TELEGRAM_ORDER_USERNAME = "thatswriter";
-const TELEGRAM_CHANNEL_USERNAME = "silentscriptuz";
-const COPYRIGHT_YEAR = 2026;
-const pageStyles: PageStyle[] = ["lined", "grid", "dotted", "blank"];
-
-function scrollToId(id: string) {
-  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+function Language({ locale, onChange }: { locale: Locale; onChange: (value: Locale) => void }) {
+  return <div className="ss-language">{(["uz", "en", "ru"] as Locale[]).map((item) => <button type="button" key={item} className={item === locale ? "active" : ""} onClick={() => onChange(item)}>{item.toUpperCase()}</button>)}</div>;
 }
 
-function calculateCustomPrice(custom: CustomState) {
-  return (
-    129000 +
-    (custom.size === "A6" ? -20000 : 0) +
-    (custom.pages === "dotted" ? 10000 : custom.pages === "grid" ? 5000 : 0) +
-    (custom.personalization.trim() ? 15000 : 0) +
-    (custom.giftBox ? 25000 : 0)
-  );
-}
-
-function getProduct(productId: string): Product | undefined {
-  return products.find((product) => product.id === productId);
-}
-
-function isCart(value: unknown): value is CartItem[] {
-  if (!Array.isArray(value)) return false;
-  return value.every((item) => {
-    if (!item || typeof item !== "object") return false;
-    const entry = item as Partial<CartItem>;
-    if (typeof entry.key !== "string" || typeof entry.price !== "number" || typeof entry.quantity !== "number") return false;
-    if (entry.kind === "product") return typeof (entry as ProductCartItem).productId === "string";
-    if (entry.kind === "custom") {
-      const config = (entry as CustomCartItem).config;
-      return Boolean(config && typeof config === "object" && typeof config.personalization === "string");
-    }
-    return false;
-  });
-}
-
-function LanguageSwitcher({
-  locale,
-  onChange,
-  mobile = false,
-}: {
-  locale: Locale;
-  onChange: (locale: Locale) => void;
-  mobile?: boolean;
-}) {
-  return (
-    <div className={`language-switcher ${mobile ? "language-switcher--mobile" : ""}`} aria-label="Language / Til / Язык">
-      {localeOptions.map((option) => (
-        <button
-          type="button"
-          key={option.code}
-          className={locale === option.code ? "active" : ""}
-          aria-pressed={locale === option.code}
-          aria-label={option.label}
-          title={option.label}
-          onClick={() => onChange(option.code)}
-        >
-          {option.short}
-        </button>
-      ))}
-    </div>
-  );
+function ProductImage({ product, locale }: { product: CatalogProduct; locale: Locale }) {
+  const [failed, setFailed] = useState(false);
+  return failed || !product.image ? <div className="ss-fallback" style={{ background: `linear-gradient(145deg, ${product.colors[0]?.hex ?? "#765343"}, #2f241d)` }}><span>silent script.</span></div> : <img src={product.image} alt={product.name[locale]} onError={() => setFailed(true)} />;
 }
 
 export default function HomePage() {
   const [locale, setLocale] = useState<Locale>("uz");
-  const [localeReady, setLocaleReady] = useState(false);
-  const [mobileMenu, setMobileMenu] = useState(false);
-  const [cartOpen, setCartOpen] = useState(false);
+  const [catalog, setCatalog] = useState<Catalog>(defaultCatalog as Catalog);
+  const [category, setCategory] = useState<CategoryFilter>("all");
+  const [selected, setSelected] = useState<CatalogProduct | null>(null);
+  const [configuration, setConfiguration] = useState<CartConfiguration>({ colorId: "", includeNotebook: true, pageType: "lined", initial: "", giftBox: false });
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [cartReady, setCartReady] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [cartOpen, setCartOpen] = useState(false);
   const [orderOpen, setOrderOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [orderError, setOrderError] = useState("");
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const [custom, setCustom] = useState<CustomState>({
-    size: "A5",
-    colorIndex: 0,
-    pages: "lined",
-    personalization: "",
-    giftBox: true,
-  });
-  const [customer, setCustomer] = useState<CustomerDetails>({
-    name: "",
-    phone: "",
-    address: "",
-    comment: "",
-  });
-
-  const t = translations[locale];
-  const activeColor = coverColors[custom.colorIndex] ?? coverColors[0];
-  const customPrice = calculateCustomPrice(custom);
+  const [customer, setCustomer] = useState<Customer>({ name: "", phone: "", address: "", comment: "" });
+  const [error, setError] = useState("");
+  const t = ui[locale];
 
   useEffect(() => {
-    try {
-      const storedLocale = localStorage.getItem(LOCALE_STORAGE_KEY);
-      if (storedLocale === "uz" || storedLocale === "en" || storedLocale === "ru") {
-        setLocale(storedLocale);
-      }
-    } finally {
-      setLocaleReady(true);
-    }
+    const storedLocale = localStorage.getItem(LOCALE_KEY);
+    if (storedLocale === "uz" || storedLocale === "en" || storedLocale === "ru") setLocale(storedLocale);
+    try { const saved = JSON.parse(localStorage.getItem(CART_KEY) ?? "[]"); if (Array.isArray(saved)) setCart(saved); } catch { localStorage.removeItem(CART_KEY); }
+    fetch("/api/catalog", { cache: "no-store" }).then((r) => r.json()).then((data: unknown) => { if (isCatalog(data)) setCatalog(data); }).catch(() => undefined);
   }, []);
 
-  useEffect(() => {
-    if (!localeReady) return;
-    localStorage.setItem(LOCALE_STORAGE_KEY, locale);
-    document.documentElement.lang = locale;
-    document.title = translations[locale].meta.title;
-    const description = document.querySelector<HTMLMetaElement>('meta[name="description"]');
-    if (description) description.content = translations[locale].meta.description;
-  }, [locale, localeReady]);
+  useEffect(() => { localStorage.setItem(LOCALE_KEY, locale); document.documentElement.lang = locale; }, [locale]);
+  useEffect(() => { localStorage.setItem(CART_KEY, JSON.stringify(cart)); }, [cart]);
 
-  useEffect(() => {
-    try {
-      const storedCart = localStorage.getItem(CART_STORAGE_KEY);
-      if (storedCart) {
-        const parsed: unknown = JSON.parse(storedCart);
-        if (isCart(parsed)) setCart(parsed.filter((item) => item.quantity > 0));
-      }
-    } catch {
-      localStorage.removeItem(CART_STORAGE_KEY);
-    } finally {
-      setCartReady(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!cartReady) return;
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
-  }, [cart, cartReady]);
-
-  const overlayOpen = Boolean(cartOpen || selectedProduct || orderOpen || mobileMenu || searchOpen);
-
-  useEffect(() => {
-    document.body.style.overflow = overlayOpen ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [overlayOpen]);
-
-  useEffect(() => {
-    function handleEscape(event: KeyboardEvent) {
-      if (event.key !== "Escape") return;
-      setMobileMenu(false);
-      setCartOpen(false);
-      setSelectedProduct(null);
-      setOrderOpen(false);
-      setSearchOpen(false);
-    }
-    window.addEventListener("keydown", handleEscape);
-    return () => window.removeEventListener("keydown", handleEscape);
-  }, []);
-
+  const products = useMemo(() => catalog.products.filter((p) => p.active && (category === "all" || p.category === category)), [catalog, category]);
+  const featured = catalog.products.find((p) => p.active && p.featured) ?? catalog.products.find((p) => p.active);
+  const selectedPrice = selected ? productPrice(selected, configuration) : 0;
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const cartTotal = cart.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
 
-  const filteredProducts = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    if (!query) return products;
-    return products.filter((product) => {
-      const text = `${product.name[locale]} ${product.description[locale]} ${product.pageType[locale]}`;
-      return text.toLowerCase().includes(query);
-    });
-  }, [locale, search]);
+  function openProduct(product: CatalogProduct) {
+    setSelected(product);
+    setConfiguration({ colorId: product.colors[0]?.id ?? "", includeNotebook: product.supportsInsert, pageType: product.pageType ?? "lined", initial: "", giftBox: false });
+  }
 
-  function addProduct(product: Product) {
+  function addToCart() {
+    if (!selected) return;
+    const config = { ...configuration };
+    const key = [selected.id, config.colorId, config.includeNotebook ? "insert" : "cover", config.pageType, config.initial || "none", config.giftBox ? "gift" : "standard"].join("-");
+    const unitPrice = productPrice(selected, config);
     setCart((current) => {
-      const key = `product-${product.id}`;
-      const existing = current.find((item) => item.key === key);
-      if (existing) {
-        return current.map((item) => (item.key === key ? { ...item, quantity: item.quantity + 1 } : item));
-      }
-      return [
-        ...current,
-        {
-          key,
-          kind: "product",
-          productId: product.id,
-          price: product.price,
-          quantity: 1,
-        },
-      ];
+      const found = current.find((item) => item.key === key);
+      return found ? current.map((item) => item.key === key ? { ...item, quantity: item.quantity + 1 } : item) : [...current, { key, productId: selected.id, quantity: 1, unitPrice, configuration: config }];
     });
-    setSelectedProduct(null);
-    setCartOpen(true);
+    setSelected(null); setCartOpen(true);
   }
 
-  function addCustomNotebook() {
-    const snapshot: CustomState = { ...custom };
-    const key = [
-      "custom",
-      snapshot.size,
-      snapshot.colorIndex,
-      snapshot.pages,
-      snapshot.personalization.trim().toLowerCase(),
-      snapshot.giftBox ? "gift" : "standard",
-    ].join("-");
-
-    setCart((current) => {
-      const existing = current.find((item) => item.key === key);
-      if (existing) {
-        return current.map((item) => (item.key === key ? { ...item, quantity: item.quantity + 1 } : item));
-      }
-      return [
-        ...current,
-        {
-          key,
-          kind: "custom",
-          config: snapshot,
-          price: calculateCustomPrice(snapshot),
-          quantity: 1,
-        },
-      ];
-    });
-    setCartOpen(true);
+  function changeQuantity(key: string, delta: number) {
+    setCart((current) => current.flatMap((item) => item.key !== key ? [item] : item.quantity + delta <= 0 ? [] : [{ ...item, quantity: item.quantity + delta }]));
   }
 
-  function changeQuantity(key: string, direction: 1 | -1) {
-    setCart((current) =>
-      current.flatMap((item) => {
-        if (item.key !== key) return [item];
-        const quantity = item.quantity + direction;
-        return quantity <= 0 ? [] : [{ ...item, quantity }];
-      }),
-    );
-  }
-
-  function cartItemDetails(item: CartItem) {
-    if (item.kind === "product") {
-      const product = getProduct(item.productId);
-      if (!product) {
-        return {
-          name: "silent script.",
-          meta: "",
-          color: "#9ca57a",
-          accent: "#5d6444",
-        };
-      }
-      return {
-        name: product.name[locale],
-        meta: `${product.size} · ${product.pages} ${t.common.pagesUnit} · ${product.pageType[locale]}`,
-        color: product.cover,
-        accent: product.accent,
-      };
-    }
-
-    const color = coverColors[item.config.colorIndex] ?? coverColors[0];
-    const details = [
-      item.config.size,
-      color.name[locale],
-      t.custom.pageTypes[item.config.pages],
-      item.config.personalization.trim() ? `“${item.config.personalization.trim()}”` : null,
-      item.config.giftBox ? t.cart.giftBox : null,
-    ].filter(Boolean);
-
-    return {
-      name: t.custom.customName,
-      meta: details.join(" · "),
-      color: color.value,
-      accent: color.accent,
-    };
-  }
-
-  const orderText = useMemo(() => {
-    if (cart.length === 0) return t.order.emptyGreeting;
-
-    const lines = cart.map((item, index) => {
-      const details = cartItemDetails(item);
-      return `${index + 1}. ${details.name}\n   ${details.meta}\n   ${item.quantity} × ${formatPrice(item.price, t.common.currency)} = ${formatPrice(item.quantity * item.price, t.common.currency)}`;
-    });
-
-    const customerLines = [
-      customer.name.trim() ? `${t.order.customer}: ${customer.name.trim()}` : null,
-      customer.phone.trim() ? `${t.order.phoneLabel}: ${customer.phone.trim()}` : null,
-      customer.address.trim() ? `${t.order.addressLabel}: ${customer.address.trim()}` : null,
-      customer.comment.trim() ? `${t.order.commentLabel}: ${customer.comment.trim()}` : null,
-    ].filter(Boolean);
-
-    return `${t.order.greeting}\n\n${lines.join("\n\n")}\n\n${t.common.total}: ${formatPrice(cartTotal, t.common.currency)}${customerLines.length ? `\n\n${customerLines.join("\n")}` : ""}`;
-  }, [cart, cartTotal, customer, locale, t]);
-
-  async function copyOrder() {
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(orderText);
-      } else {
-        const textArea = document.createElement("textarea");
-        textArea.value = orderText;
-        textArea.style.position = "fixed";
-        textArea.style.opacity = "0";
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand("copy");
-        textArea.remove();
-      }
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1800);
-    } catch {
-      setCopied(false);
-    }
-  }
-
-  function submitTelegramOrder(event: FormEvent<HTMLFormElement>) {
+  function submitOrder(event: FormEvent) {
     event.preventDefault();
-    if (!customer.name.trim() || !customer.phone.trim()) {
-      setOrderError(t.order.required);
-      return;
-    }
-    setOrderError("");
-    const url = `https://t.me/${TELEGRAM_ORDER_USERNAME}?text=${encodeURIComponent(orderText)}`;
-    window.open(url, "_blank", "noopener,noreferrer");
+    if (!customer.name.trim() || !customer.phone.trim()) { setError(t.required); return; }
+    const lines = cart.map((item, index) => {
+      const product = catalog.products.find((p) => p.id === item.productId);
+      if (!product) return "";
+      const color = product.colors.find((c) => c.id === item.configuration.colorId);
+      const details = [color?.name[locale], product.size, product.supportsInsert ? (item.configuration.includeNotebook ? `${t.withInsert}, ${t.pages[item.configuration.pageType]}` : t.onlyCover) : null, item.configuration.initial ? `${t.initial}: ${item.configuration.initial}` : null, item.configuration.giftBox ? t.gift : null].filter(Boolean).join(" · ");
+      return `${index + 1}. ${product.name[locale]}\n   ${details}\n   ${item.quantity} × ${formatPrice(item.unitPrice, t.currency)}`;
+    }).filter(Boolean);
+    const text = `${t.greeting}\n\n${lines.join("\n\n")}\n\n${t.total}: ${formatPrice(cartTotal, t.currency)}\n\n${t.name}: ${customer.name}\n${t.phone}: ${customer.phone}${customer.address ? `\n${t.address}: ${customer.address}` : ""}${customer.comment ? `\n${t.comment}: ${customer.comment}` : ""}`;
+    window.open(`https://t.me/${TELEGRAM_ORDER}?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
   }
 
-  function selectLocale(nextLocale: Locale) {
-    setLocale(nextLocale);
-  }
+  return <main className="ss-site">
+    <header className="ss-header"><a className="ss-brand" href="#home"><img src="/brand-avatar.svg" alt="silent script."/><span>silent script.</span></a><nav><a href="#home">{t.home}</a><a href="#shop">{t.shop}</a><a href="#about">{t.about}</a></nav><div className="ss-actions"><Language locale={locale} onChange={setLocale}/><button className="ss-cart-button" type="button" onClick={() => setCartOpen(true)}>Bag <b>{cartCount}</b></button></div></header>
 
-  const navItems = [
-    [t.nav.home, "top"],
-    [t.nav.shop, "shop"],
-    [t.nav.customize, "customize"],
-    [t.nav.about, "about"],
-    [t.nav.journal, "journal"],
-    [t.nav.faq, "faq"],
-  ] as const;
+    <section id="home" className="ss-hero"><div className="ss-hero-copy"><p className="ss-eyebrow">{t.eyebrow}</p><h1>{t.title}</h1><p>{t.intro}</p><div><a className="ss-button primary" href="#shop">{t.see}</a><a className="ss-button ghost" href={`https://t.me/${TELEGRAM_ORDER}`} target="_blank" rel="noreferrer">{t.order}</a></div></div><div className="ss-hero-media">{featured ? <ProductImage product={featured} locale={locale}/> : null}<span>01 / leather collection</span></div></section>
 
-  const benefitIcons = [LeafIcon, PencilIcon, UserIcon, GiftIcon, SparkIcon];
-  const journalArts = ["journal-art--desk", "journal-art--pages", "journal-art--stack", "journal-art--calm"];
+    <section id="shop" className="ss-section"><div className="ss-heading"><div><p className="ss-eyebrow">{t.collection}</p><h2>{t.collectionTitle}</h2></div><p>{t.collectionText}</p></div><div className="ss-filters">{(["all", "cover", "notebook", "set"] as CategoryFilter[]).map((item) => <button key={item} type="button" className={category === item ? "active" : ""} onClick={() => setCategory(item)}>{item === "all" ? t.all : t[item]}</button>)}</div><div className="ss-grid">{products.map((product) => <article className="ss-card" key={product.id}><button className="ss-card-image" type="button" onClick={() => openProduct(product)}><ProductImage product={product} locale={locale}/>{product.badge ? <span>{product.badge[locale]}</span> : null}</button><div><small>{product.category === "cover" ? t.cover : product.category === "notebook" ? t.notebook : t.set} · {product.size}</small><h3>{product.name[locale]}</h3><p>{product.description[locale]}</p><footer><strong>{t.from} {formatPrice(product.basePrice, t.currency)}</strong><button type="button" onClick={() => openProduct(product)}>{t.customize} →</button></footer></div></article>)}</div></section>
 
-  return (
-    <>
-      <div className="announcement-bar">{t.announcement}</div>
-      <header className="site-header">
-        <a className="wordmark" href="#top" aria-label={`silent script. — ${t.nav.home}`}>
-          silent script.
-        </a>
-        <nav className="desktop-nav" aria-label={t.common.menu}>
-          {navItems.map(([label, id]) => (
-            <button type="button" key={id} onClick={() => scrollToId(id)}>
-              {label}
-            </button>
-          ))}
-        </nav>
-        <div className="header-actions">
-          <LanguageSwitcher locale={locale} onChange={selectLocale} />
-          <button type="button" className="icon-button" aria-label={t.common.search} onClick={() => setSearchOpen(true)}>
-            <SearchIcon />
-          </button>
-          <button
-            type="button"
-            className="icon-button bag-button"
-            aria-label={`${t.common.bag}: ${cartCount}`}
-            onClick={() => setCartOpen(true)}
-          >
-            <BagIcon />
-            {cartCount > 0 && <span className="bag-count">{cartCount}</span>}
-          </button>
-          <button
-            type="button"
-            className="icon-button mobile-menu-button"
-            aria-label={t.common.menu}
-            onClick={() => setMobileMenu(true)}
-          >
-            <MenuIcon />
-          </button>
-        </div>
-      </header>
+    <section id="about" className="ss-story"><div><p className="ss-eyebrow">{t.why}</p><h2>{t.whyTitle}</h2><p>{t.whyText}</p></div><div className="ss-benefits">{t.benefits.map(([title, text], index) => <article key={title}><span>0{index + 1}</span><h3>{title}</h3><p>{text}</p></article>)}</div></section>
 
-      <main id="top">
-        <section className="hero section-shell">
-          <div className="hero-copy">
-            <p className="eyebrow">{t.hero.eyebrow}</p>
-            <h1>{t.hero.title}</h1>
-            <p className="hero-description">{t.hero.description}</p>
-            <div className="hero-actions">
-              <button type="button" className="button button--primary" onClick={() => scrollToId("customize")}>
-                {t.hero.create} <ArrowIcon size={17} />
-              </button>
-              <a
-                className="button button--outline"
-                href={`https://t.me/${TELEGRAM_CHANNEL_USERNAME}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {t.hero.channel} <TelegramIcon size={17} />
-              </a>
-            </div>
-            <div className="hero-proof">
-              {t.hero.proof.map((item) => (
-                <span key={item}>
-                  <CheckIcon size={15} /> {item}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="hero-art" aria-label="silent script. notebook">
-            <span className="hero-leaf hero-leaf--one" />
-            <span className="hero-leaf hero-leaf--two" />
-            <div className="stone stone--back" />
-            <div className="stone stone--front" />
-            <NotebookVisual color="#9ca57a" accent="#596044" size="lg" rotate={-4} ribbon />
-            <div className="ceramic-vase">
-              <span />
-            </div>
-          </div>
-        </section>
+    <footer className="ss-footer"><div><img src="/brand-avatar.svg" alt="silent script."/><div><h2>silent script.</h2><p>{t.footer}</p></div></div><nav><a href="#shop">{t.shop}</a><a href={`https://t.me/${TELEGRAM_CHANNEL}`} target="_blank" rel="noreferrer">@{TELEGRAM_CHANNEL}</a><a href="/admin">{t.admin}</a></nav></footer>
 
-        <section id="shop" className="section section-shell products-section">
-          <Reveal>
-            <div className="section-heading">
-              <div>
-                <p className="eyebrow">{t.products.eyebrow}</p>
-                <h2>{t.products.title}</h2>
-              </div>
-              <button type="button" className="text-link" onClick={() => setSearchOpen(true)}>
-                {t.products.all} <ArrowIcon size={17} />
-              </button>
-            </div>
-          </Reveal>
-          <div className="product-grid">
-            {products.map((product, index) => (
-              <Reveal key={product.id} delay={index * 55}>
-                <article className="product-card">
-                  <button
-                    type="button"
-                    className="product-visual"
-                    onClick={() => setSelectedProduct(product)}
-                    aria-label={`${product.name[locale]} — ${t.products.quickView}`}
-                  >
-                    {product.badge && <span className="product-badge">{product.badge[locale]}</span>}
-                    <NotebookVisual
-                      color={product.cover}
-                      accent={product.accent}
-                      size={product.size === "A6" ? "sm" : "md"}
-                      rotate={index % 2 ? 4 : -4}
-                      ribbon={product.ribbon}
-                      gift={product.gift}
-                    />
-                    <span className="quick-view">{t.products.quickView}</span>
-                  </button>
-                  <div className="product-info">
-                    <button type="button" className="product-name" onClick={() => setSelectedProduct(product)}>
-                      {product.name[locale]}
-                    </button>
-                    <p>
-                      {product.pages} {t.common.pagesUnit} · {product.pageType[locale]}
-                    </p>
-                    <div className="product-bottom">
-                      <strong>{formatPrice(product.price, t.common.currency)}</strong>
-                      <button
-                        type="button"
-                        className="add-circle"
-                        onClick={() => addProduct(product)}
-                        aria-label={`${product.name[locale]} — ${t.products.add}`}
-                      >
-                        <PlusIcon size={18} />
-                      </button>
-                    </div>
-                  </div>
-                </article>
-              </Reveal>
-            ))}
-          </div>
-        </section>
+    {selected ? <div className="ss-overlay" onMouseDown={() => setSelected(null)}><section className="ss-modal" onMouseDown={(e) => e.stopPropagation()}><button className="ss-close" type="button" onClick={() => setSelected(null)}>×</button><div className="ss-modal-image"><ProductImage product={selected} locale={locale}/></div><div className="ss-modal-body"><small>{selected.category === "cover" ? t.cover : t.notebook} · {selected.size}</small><h2>{selected.name[locale]}</h2><p>{selected.description[locale]}</p><label className="ss-label">{t.color}</label><div className="ss-colors">{selected.colors.map((color) => <button type="button" key={color.id} className={configuration.colorId === color.id ? "active" : ""} onClick={() => setConfiguration((c) => ({ ...c, colorId: color.id }))}><i style={{ background: color.hex }}/>{color.name[locale]}</button>)}</div>{selected.supportsInsert ? <><label className="ss-label">{t.insert}</label><div className="ss-choices"><button type="button" className={configuration.includeNotebook ? "active" : ""} onClick={() => setConfiguration((c) => ({ ...c, includeNotebook: true }))}>{t.yesInsert}<small>+ {formatPrice(selected.insertPrice ?? 0, t.currency)}</small></button><button type="button" className={!configuration.includeNotebook ? "active" : ""} onClick={() => setConfiguration((c) => ({ ...c, includeNotebook: false }))}>{t.noInsert}</button></div></> : null}{selected.supportsInsert && configuration.includeNotebook ? <><label className="ss-label">{t.page}</label><div className="ss-pages">{(["lined", "dotted", "grid", "blank"] as PageType[]).map((page) => <button type="button" key={page} className={configuration.pageType === page ? "active" : ""} onClick={() => setConfiguration((c) => ({ ...c, pageType: page }))}>{t.pages[page]}</button>)}</div></> : null}<div className="ss-two"><label><span className="ss-label">{t.initial}</span><input value={configuration.initial} maxLength={1} onChange={(e) => setConfiguration((c) => ({ ...c, initial: normalizeInitial(e.target.value) }))} placeholder="G"/><small>{t.initialHint}</small></label><div><span className="ss-label">{t.gift}</span><div className="ss-pages"><button type="button" className={!configuration.giftBox ? "active" : ""} onClick={() => setConfiguration((c) => ({ ...c, giftBox: false }))}>{t.no}</button><button type="button" className={configuration.giftBox ? "active" : ""} onClick={() => setConfiguration((c) => ({ ...c, giftBox: true }))}>{t.yes}</button></div></div></div><div className="ss-modal-total"><div><span>{t.total}</span><strong>{formatPrice(selectedPrice, t.currency)}</strong></div><button className="ss-button primary" type="button" onClick={addToCart}>{t.add}</button></div></div></section></div> : null}
 
-        <section className="benefits section-shell" aria-label={t.nav.about}>
-          {t.benefits.map(([title, text], index) => {
-            const Icon = benefitIcons[index] ?? SparkIcon;
-            return (
-              <div className="benefit" key={title}>
-                <Icon size={26} />
-                <h3>{title}</h3>
-                <p>{text}</p>
-              </div>
-            );
-          })}
-        </section>
+    {cartOpen ? <div className="ss-overlay" onMouseDown={() => setCartOpen(false)}><aside className="ss-drawer" onMouseDown={(e) => e.stopPropagation()}><header><h2>{t.cart} <sup>{cartCount}</sup></h2><button type="button" onClick={() => setCartOpen(false)}>×</button></header><div className="ss-cart-list">{cart.length === 0 ? <p>{t.empty}</p> : cart.map((item) => { const product = catalog.products.find((p) => p.id === item.productId); if (!product) return null; return <article key={item.key}><div className="ss-cart-img"><ProductImage product={product} locale={locale}/></div><div><h3>{product.name[locale]}</h3><p>{product.size} · {product.supportsInsert ? (item.configuration.includeNotebook ? t.withInsert : t.onlyCover) : ""}</p><strong>{formatPrice(item.unitPrice, t.currency)}</strong><footer><button type="button" onClick={() => changeQuantity(item.key, -1)}>−</button><span>{item.quantity}</span><button type="button" onClick={() => changeQuantity(item.key, 1)}>+</button><button type="button" onClick={() => setCart((c) => c.filter((x) => x.key !== item.key))}>{t.remove}</button></footer></div></article>; })}</div>{cart.length ? <footer className="ss-drawer-footer"><div><span>{t.total}</span><strong>{formatPrice(cartTotal, t.currency)}</strong></div><button className="ss-button primary" type="button" onClick={() => { setCartOpen(false); setOrderOpen(true); }}>{t.checkout}</button></footer> : null}</aside></div> : null}
 
-        <section id="customize" className="section section-shell customizer-section">
-          <Reveal className="customizer-intro">
-            <p className="eyebrow">{t.custom.eyebrow}</p>
-            <h2>{t.custom.title}</h2>
-            <p>{t.custom.description}</p>
-            <div className="customizer-note">
-              <SparkIcon size={18} />
-              <span>{t.custom.note}</span>
-            </div>
-          </Reveal>
+    {orderOpen ? <div className="ss-overlay" onMouseDown={() => setOrderOpen(false)}><section className="ss-order" onMouseDown={(e) => e.stopPropagation()}><button className="ss-close" type="button" onClick={() => setOrderOpen(false)}>×</button><p className="ss-eyebrow">TELEGRAM</p><h2>{t.order}</h2><form onSubmit={submitOrder}><label>{t.name} *<input value={customer.name} onChange={(e) => setCustomer({ ...customer, name: e.target.value })}/></label><label>{t.phone} *<input value={customer.phone} onChange={(e) => setCustomer({ ...customer, phone: e.target.value })} placeholder="+998"/></label><label>{t.address}<input value={customer.address} onChange={(e) => setCustomer({ ...customer, address: e.target.value })}/></label><label>{t.comment}<textarea value={customer.comment} onChange={(e) => setCustomer({ ...customer, comment: e.target.value })}/></label>{error ? <p className="ss-error">{error}</p> : null}<button className="ss-button primary" type="submit">{t.send}</button></form></section></div> : null}
 
-          <Reveal className="customizer-preview" delay={80}>
-            <NotebookVisual
-              color={activeColor.value}
-              accent={activeColor.accent}
-              size={custom.size === "A6" ? "md" : "lg"}
-              rotate={-2}
-              ribbon
-              label={custom.personalization.trim() || t.custom.defaultPersonalization}
-            />
-            <div className="preview-dots" aria-hidden="true">
-              <span className="active" />
-              <span />
-              <span />
-            </div>
-          </Reveal>
-
-          <Reveal className="customizer-controls" delay={150}>
-            <fieldset>
-              <legend>{t.custom.size}</legend>
-              <div className="segmented">
-                {(["A5", "A6"] as const).map((size) => (
-                  <button
-                    type="button"
-                    key={size}
-                    className={custom.size === size ? "active" : ""}
-                    aria-pressed={custom.size === size}
-                    onClick={() => setCustom((current) => ({ ...current, size }))}
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-            <fieldset>
-              <legend>{t.custom.coverColor}</legend>
-              <div className="swatches">
-                {coverColors.map((color, index) => (
-                  <button
-                    type="button"
-                    key={color.value}
-                    aria-label={color.name[locale]}
-                    title={color.name[locale]}
-                    className={custom.colorIndex === index ? "active" : ""}
-                    style={{ background: color.value }}
-                    onClick={() => setCustom((current) => ({ ...current, colorIndex: index }))}
-                  />
-                ))}
-              </div>
-            </fieldset>
-            <fieldset>
-              <legend>{t.custom.pageType}</legend>
-              <div className="page-options">
-                {pageStyles.map((page) => (
-                  <button
-                    type="button"
-                    key={page}
-                    title={t.custom.pageTypes[page]}
-                    aria-label={t.custom.pageTypes[page]}
-                    aria-pressed={custom.pages === page}
-                    className={custom.pages === page ? "active" : ""}
-                    onClick={() => setCustom((current) => ({ ...current, pages: page }))}
-                  >
-                    <span className={`page-icon page-icon--${page}`} />
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-            <fieldset className="initial-field">
-              <legend>{t.custom.coverText}</legend>
-              <div className="initial-input-row">
-                <input
-                  id="cover-initial"
-                  name="coverInitial"
-                  value={custom.personalization}
-                  maxLength={1}
-                  inputMode="text"
-                  autoComplete="off"
-                  autoCapitalize="characters"
-                  spellCheck={false}
-                  aria-describedby="cover-initial-help"
-                  onChange={(event) => {
-                    const letter = Array.from(event.target.value.normalize("NFC").replace(/[^\p{L}]/gu, ""))[0] ?? "";
-                    setCustom((current) => ({ ...current, personalization: letter.toUpperCase() }));
-                  }}
-                  placeholder={t.custom.placeholder}
-                />
-                <span id="cover-initial-help" className="initial-counter" aria-live="polite">
-                  {Array.from(custom.personalization).length}/1 {t.custom.characters}
-                </span>
-              </div>
-            </fieldset>
-            <fieldset>
-              <legend>{t.custom.giftBox}</legend>
-              <div className="segmented">
-                <button
-                  type="button"
-                  className={!custom.giftBox ? "active" : ""}
-                  aria-pressed={!custom.giftBox}
-                  onClick={() => setCustom((current) => ({ ...current, giftBox: false }))}
-                >
-                  {t.common.no}
-                </button>
-                <button
-                  type="button"
-                  className={custom.giftBox ? "active" : ""}
-                  aria-pressed={custom.giftBox}
-                  onClick={() => setCustom((current) => ({ ...current, giftBox: true }))}
-                >
-                  {t.common.yes}
-                </button>
-              </div>
-            </fieldset>
-          </Reveal>
-
-          <Reveal className="customizer-summary" delay={220}>
-            <p className="summary-title">{t.custom.summary}</p>
-            <dl>
-              <div>
-                <dt>{t.custom.size}</dt>
-                <dd>{custom.size}</dd>
-              </div>
-              <div>
-                <dt>{t.custom.color}</dt>
-                <dd>{activeColor.name[locale]}</dd>
-              </div>
-              <div>
-                <dt>{t.custom.pages}</dt>
-                <dd>{t.custom.pageTypes[custom.pages]}</dd>
-              </div>
-              <div>
-                <dt>{t.custom.personalization}</dt>
-                <dd>{custom.personalization.trim() || t.common.no}</dd>
-              </div>
-              <div>
-                <dt>{t.custom.giftBox}</dt>
-                <dd>{custom.giftBox ? t.common.yes : t.common.no}</dd>
-              </div>
-            </dl>
-            <div className="summary-total">
-              <span>{t.common.total}</span>
-              <strong>{formatPrice(customPrice, t.common.currency)}</strong>
-            </div>
-            <button type="button" className="button button--primary button--full" onClick={addCustomNotebook}>
-              {t.products.add} <BagIcon size={17} />
-            </button>
-          </Reveal>
-        </section>
-
-        <section id="about" className="section section-shell story-section">
-          <Reveal className="story-card story-card--large">
-            <div className="story-copy">
-              <p className="eyebrow">{t.story.eyebrow}</p>
-              <h2>{t.story.title}</h2>
-              <p>{t.story.description}</p>
-              <a
-                href={`https://t.me/${TELEGRAM_CHANNEL_USERNAME}`}
-                target="_blank"
-                rel="noreferrer"
-                className="text-link"
-              >
-                {t.story.link} <ArrowIcon size={17} />
-              </a>
-            </div>
-            <div className="story-art">
-              <div className="open-pages">
-                <span />
-                <span />
-                <i />
-              </div>
-              <NotebookVisual color="#6f5a48" accent="#c9b89d" size="md" rotate={7} />
-            </div>
-          </Reveal>
-          <Reveal className="quote-card" delay={100}>
-            <p>{t.story.quote}</p>
-            <span>— silent script.</span>
-          </Reveal>
-        </section>
-
-        <section id="journal" className="section section-shell journal-section">
-          <Reveal>
-            <div className="section-heading">
-              <div>
-                <p className="eyebrow">{t.journal.eyebrow}</p>
-                <h2>{t.journal.title}</h2>
-              </div>
-              <a
-                className="text-link"
-                href={`https://t.me/${TELEGRAM_CHANNEL_USERNAME}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {t.journal.link} <ArrowIcon size={17} />
-              </a>
-            </div>
-          </Reveal>
-          <div className="journal-grid">
-            {t.journal.items.map(([title, text], index) => (
-              <Reveal key={title} delay={index * 70}>
-                <article className="journal-card">
-                  <div className={`journal-art ${journalArts[index] ?? "journal-art--desk"}`}>
-                    <NotebookVisual
-                      color={index % 2 ? "#d4c9b7" : "#919a70"}
-                      accent="#5b6049"
-                      size="sm"
-                      rotate={index % 2 ? 8 : -8}
-                    />
-                  </div>
-                  <p className="journal-number">0{index + 1}</p>
-                  <h3>{title}</h3>
-                  <p>{text}</p>
-                </article>
-              </Reveal>
-            ))}
-          </div>
-        </section>
-
-        <section id="faq" className="section section-shell faq-section">
-          <Reveal className="faq-intro">
-            <p className="eyebrow">{t.faq.eyebrow}</p>
-            <h2>{t.faq.title}</h2>
-            <p>{t.faq.description}</p>
-          </Reveal>
-          <Reveal className="faq-list" delay={80}>
-            {t.faq.items.map(([question, answer]) => (
-              <details key={question}>
-                <summary>
-                  {question} <PlusIcon size={19} />
-                </summary>
-                <p>{answer}</p>
-              </details>
-            ))}
-          </Reveal>
-        </section>
-
-        <section className="newsletter section-shell">
-          <div>
-            <p className="eyebrow">{t.newsletter.eyebrow}</p>
-            <h2>{t.newsletter.title}</h2>
-          </div>
-          <a
-            className="button button--light"
-            href={`https://t.me/${TELEGRAM_CHANNEL_USERNAME}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {t.newsletter.button} <TelegramIcon size={17} />
-          </a>
-        </section>
-      </main>
-
-      <footer className="footer">
-        <div className="section-shell footer-grid">
-          <div className="footer-brand">
-            <div className="footer-logo">
-              <span className="footer-avatar-frame">
-                <Image
-                  src="/brand-avatar.svg"
-                  alt="silent script. brend avatari"
-                  width={82}
-                  height={82}
-                  sizes="82px"
-                />
-              </span>
-              <span className="footer-wordmark">silent script.</span>
-            </div>
-            <p>{t.footer.description}</p>
-          </div>
-          <div>
-            <h3>{t.footer.shop}</h3>
-            <button type="button" onClick={() => scrollToId("shop")}>
-              {t.footer.allProducts}
-            </button>
-            <button type="button" onClick={() => scrollToId("customize")}>
-              {t.footer.customize}
-            </button>
-            <a href={`https://t.me/${TELEGRAM_CHANNEL_USERNAME}`} target="_blank" rel="noreferrer">
-              {t.footer.giftSets}
-            </a>
-          </div>
-          <div>
-            <h3>{t.footer.help}</h3>
-            <button type="button" onClick={() => scrollToId("faq")}>
-              FAQ
-            </button>
-            <a href={`https://t.me/${TELEGRAM_ORDER_USERNAME}`} target="_blank" rel="noreferrer">
-              {t.footer.delivery}
-            </a>
-            <a href={`https://t.me/${TELEGRAM_ORDER_USERNAME}`} target="_blank" rel="noreferrer">
-              {t.footer.orderStatus}
-            </a>
-          </div>
-          <div>
-            <h3>{t.footer.brand}</h3>
-            <button type="button" onClick={() => scrollToId("about")}>
-              {t.footer.about}
-            </button>
-            <button type="button" onClick={() => scrollToId("journal")}>
-              {t.nav.journal}
-            </button>
-            <a href={`https://t.me/${TELEGRAM_ORDER_USERNAME}`} target="_blank" rel="noreferrer">
-              {t.footer.contact}
-            </a>
-          </div>
-          <div>
-            <h3>{t.footer.connect}</h3>
-            <a className="footer-social" href={`https://t.me/${TELEGRAM_ORDER_USERNAME}`} target="_blank" rel="noreferrer">
-              <TelegramIcon size={20} /> @{TELEGRAM_ORDER_USERNAME}
-            </a>
-            <a className="footer-social" href={`https://t.me/${TELEGRAM_CHANNEL_USERNAME}`} target="_blank" rel="noreferrer">
-              <TelegramIcon size={20} /> @{TELEGRAM_CHANNEL_USERNAME}
-            </a>
-          </div>
-        </div>
-        <div className="section-shell footer-bottom">
-          <span>© {COPYRIGHT_YEAR} silent script.</span>
-          <span>{t.footer.rights}</span>
-        </div>
-      </footer>
-
-      {mobileMenu && (
-        <div className="overlay" onMouseDown={() => setMobileMenu(false)}>
-          <aside
-            className="mobile-menu"
-            role="dialog"
-            aria-modal="true"
-            aria-label={t.common.menu}
-            onMouseDown={(event) => event.stopPropagation()}
-          >
-            <div className="drawer-header">
-              <span className="wordmark">silent script.</span>
-              <button type="button" className="icon-button" aria-label={t.common.close} onClick={() => setMobileMenu(false)}>
-                <CloseIcon />
-              </button>
-            </div>
-            <LanguageSwitcher locale={locale} onChange={selectLocale} mobile />
-            <nav>
-              {navItems.map(([label, id]) => (
-                <button
-                  type="button"
-                  key={id}
-                  onClick={() => {
-                    setMobileMenu(false);
-                    window.setTimeout(() => scrollToId(id), 80);
-                  }}
-                >
-                  {label} <ArrowIcon />
-                </button>
-              ))}
-            </nav>
-            <a
-              className="button button--primary button--full"
-              href={`https://t.me/${TELEGRAM_CHANNEL_USERNAME}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {t.hero.channel} <TelegramIcon size={17} />
-            </a>
-          </aside>
-        </div>
-      )}
-
-      {searchOpen && (
-        <div className="overlay search-overlay" onMouseDown={() => setSearchOpen(false)}>
-          <div
-            className="search-panel"
-            role="dialog"
-            aria-modal="true"
-            aria-label={t.common.search}
-            onMouseDown={(event) => event.stopPropagation()}
-          >
-            <div className="search-input-wrap">
-              <SearchIcon />
-              <input
-                autoFocus
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder={t.search.placeholder}
-                aria-label={t.common.search}
-              />
-              <button type="button" className="icon-button" aria-label={t.common.close} onClick={() => setSearchOpen(false)}>
-                <CloseIcon />
-              </button>
-            </div>
-            <div className="search-results">
-              {filteredProducts.length ? (
-                filteredProducts.map((product) => (
-                  <button
-                    type="button"
-                    key={product.id}
-                    onClick={() => {
-                      setSearchOpen(false);
-                      setSelectedProduct(product);
-                    }}
-                  >
-                    <NotebookVisual color={product.cover} accent={product.accent} size="sm" rotate={-5} />
-                    <span>
-                      <strong>{product.name[locale]}</strong>
-                      <small>
-                        {product.pageType[locale]} · {formatPrice(product.price, t.common.currency)}
-                      </small>
-                    </span>
-                    <ArrowIcon size={18} />
-                  </button>
-                ))
-              ) : (
-                <p className="empty-state">{t.search.empty}</p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {cartOpen && (
-        <div className="overlay" onMouseDown={() => setCartOpen(false)}>
-          <aside
-            className="cart-drawer"
-            role="dialog"
-            aria-modal="true"
-            aria-label={t.common.bag}
-            onMouseDown={(event) => event.stopPropagation()}
-          >
-            <div className="drawer-header">
-              <div>
-                <p className="eyebrow">{t.cart.eyebrow}</p>
-                <h2>{t.cart.title}</h2>
-              </div>
-              <button type="button" className="icon-button" aria-label={t.common.close} onClick={() => setCartOpen(false)}>
-                <CloseIcon />
-              </button>
-            </div>
-            <div className="cart-items">
-              {cart.length === 0 ? (
-                <div className="empty-cart">
-                  <BagIcon size={40} />
-                  <h3>{t.cart.emptyTitle}</h3>
-                  <p>{t.cart.emptyDescription}</p>
-                  <button
-                    type="button"
-                    className="button button--primary"
-                    onClick={() => {
-                      setCartOpen(false);
-                      window.setTimeout(() => scrollToId("shop"), 80);
-                    }}
-                  >
-                    {t.common.backToShop}
-                  </button>
-                </div>
-              ) : (
-                cart.map((item) => {
-                  const details = cartItemDetails(item);
-                  return (
-                    <div className="cart-item" key={item.key}>
-                      <div className="cart-item-art">
-                        <NotebookVisual color={details.color} accent={details.accent} size="sm" rotate={-5} />
-                      </div>
-                      <div className="cart-item-info">
-                        <h3>{details.name}</h3>
-                        <p>{details.meta}</p>
-                        <strong>{formatPrice(item.price, t.common.currency)}</strong>
-                        <div className="quantity" aria-label={t.common.quantity}>
-                          <button type="button" aria-label="−" onClick={() => changeQuantity(item.key, -1)}>
-                            <MinusIcon size={15} />
-                          </button>
-                          <span>{item.quantity}</span>
-                          <button type="button" aria-label="+" onClick={() => changeQuantity(item.key, 1)}>
-                            <PlusIcon size={15} />
-                          </button>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        className="remove-button"
-                        aria-label={t.common.remove}
-                        onClick={() => setCart((current) => current.filter((entry) => entry.key !== item.key))}
-                      >
-                        <TrashIcon size={18} />
-                      </button>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-            {cart.length > 0 && (
-              <div className="cart-footer">
-                <div className="cart-total">
-                  <span>{t.common.total}</span>
-                  <strong>{formatPrice(cartTotal, t.common.currency)}</strong>
-                </div>
-                <p>{t.cart.deliveryNote}</p>
-                <button
-                  type="button"
-                  className="button button--primary button--full"
-                  onClick={() => {
-                    setCartOpen(false);
-                    setOrderOpen(true);
-                  }}
-                >
-                  {t.cart.checkout} <TelegramIcon size={17} />
-                </button>
-              </div>
-            )}
-          </aside>
-        </div>
-      )}
-
-      {selectedProduct && (
-        <div className="overlay modal-overlay" onMouseDown={() => setSelectedProduct(null)}>
-          <div
-            className="product-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="product-modal-title"
-            onMouseDown={(event) => event.stopPropagation()}
-          >
-            <button
-              type="button"
-              className="icon-button modal-close"
-              aria-label={t.common.close}
-              onClick={() => setSelectedProduct(null)}
-            >
-              <CloseIcon />
-            </button>
-            <div className="product-modal-art">
-              <NotebookVisual
-                color={selectedProduct.cover}
-                accent={selectedProduct.accent}
-                size="lg"
-                rotate={-3}
-                ribbon={selectedProduct.ribbon}
-                gift={selectedProduct.gift}
-              />
-            </div>
-            <div className="product-modal-copy">
-              <p className="eyebrow">{selectedProduct.badge?.[locale] || t.productModal.collection}</p>
-              <h2 id="product-modal-title">{selectedProduct.name[locale]}</h2>
-              <p>{selectedProduct.description[locale]}</p>
-              <ul>
-                <li>
-                  <CheckIcon size={16} /> {selectedProduct.pages} {t.common.pagesUnit}
-                </li>
-                <li>
-                  <CheckIcon size={16} /> {selectedProduct.pageType[locale]} {t.productModal.format}
-                </li>
-                <li>
-                  <CheckIcon size={16} /> {selectedProduct.size} {t.productModal.size}
-                </li>
-                <li>
-                  <CheckIcon size={16} /> {t.productModal.paper}
-                </li>
-              </ul>
-              <div className="modal-price">{formatPrice(selectedProduct.price, t.common.currency)}</div>
-              <button type="button" className="button button--primary button--full" onClick={() => addProduct(selectedProduct)}>
-                {t.products.add} <BagIcon size={17} />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {orderOpen && (
-        <div className="overlay modal-overlay" onMouseDown={() => setOrderOpen(false)}>
-          <form
-            className="order-modal order-modal--checkout"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="order-modal-title"
-            onSubmit={submitTelegramOrder}
-            onMouseDown={(event) => event.stopPropagation()}
-          >
-            <button
-              type="button"
-              className="icon-button modal-close"
-              aria-label={t.common.close}
-              onClick={() => setOrderOpen(false)}
-            >
-              <CloseIcon />
-            </button>
-            <div className="order-icon">
-              <PackageIcon size={28} />
-            </div>
-            <p className="eyebrow">{t.order.eyebrow}</p>
-            <h2 id="order-modal-title">{t.order.title}</h2>
-            <p>{t.order.description}</p>
-
-            <div className="checkout-fields">
-              <label>
-                <span>{t.order.name}</span>
-                <input
-                  autoFocus
-                  value={customer.name}
-                  autoComplete="name"
-                  placeholder={t.order.namePlaceholder}
-                  onChange={(event) => {
-                    setCustomer((current) => ({ ...current, name: event.target.value }));
-                    setOrderError("");
-                  }}
-                />
-              </label>
-              <label>
-                <span>{t.order.phone}</span>
-                <input
-                  value={customer.phone}
-                  inputMode="tel"
-                  autoComplete="tel"
-                  placeholder={t.order.phonePlaceholder}
-                  onChange={(event) => {
-                    setCustomer((current) => ({ ...current, phone: event.target.value }));
-                    setOrderError("");
-                  }}
-                />
-              </label>
-              <label className="checkout-field--wide">
-                <span>{t.order.address}</span>
-                <input
-                  value={customer.address}
-                  autoComplete="street-address"
-                  placeholder={t.order.addressPlaceholder}
-                  onChange={(event) => setCustomer((current) => ({ ...current, address: event.target.value }))}
-                />
-              </label>
-              <label className="checkout-field--wide">
-                <span>{t.order.comment}</span>
-                <input
-                  value={customer.comment}
-                  placeholder={t.order.commentPlaceholder}
-                  onChange={(event) => setCustomer((current) => ({ ...current, comment: event.target.value }))}
-                />
-              </label>
-            </div>
-
-            {orderError && <p className="form-error" role="alert">{orderError}</p>}
-
-            <label className="order-preview-label" htmlFor="order-preview">
-              {t.order.preview}
-            </label>
-            <textarea id="order-preview" readOnly value={orderText} />
-            <div className="order-actions">
-              <button type="button" className="button button--outline" onClick={copyOrder}>
-                {copied ? <CheckIcon size={17} /> : <CopyIcon size={17} />} {copied ? t.order.copied : t.order.copy}
-              </button>
-              <button type="submit" className="button button--primary">
-                {t.order.send} <TelegramIcon size={17} />
-              </button>
-            </div>
-            <a
-              href={`https://t.me/${TELEGRAM_ORDER_USERNAME}`}
-              target="_blank"
-              rel="noreferrer"
-              className="channel-link"
-            >
-              {t.order.directContact} <ArrowIcon size={16} />
-            </a>
-          </form>
-        </div>
-      )}
-    </>
-  );
+    <style jsx global>{`
+      :root{--ss-bg:#f5f0e7;--ss-paper:#fbf8f2;--ss-ink:#2e251f;--ss-muted:#756c63;--ss-green:#626b49;--ss-brown:#66493b;--ss-line:rgba(57,44,35,.16)}
+      *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--ss-bg);color:var(--ss-ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}.ss-site button,.ss-site input,.ss-site textarea{font:inherit}.ss-site button{color:inherit}.ss-site a{color:inherit;text-decoration:none}.ss-site img{display:block;width:100%;height:100%;object-fit:cover}.ss-header{height:76px;position:sticky;top:0;z-index:40;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 max(24px,calc((100vw - 1180px)/2));background:rgba(245,240,231,.9);backdrop-filter:blur(16px);border-bottom:1px solid var(--ss-line)}.ss-brand{display:flex;align-items:center;gap:12px;font:600 27px Georgia,serif}.ss-brand img{width:38px;height:38px;border-radius:6px}.ss-header nav{display:flex;gap:28px;font-size:13px}.ss-actions{justify-self:end;display:flex;align-items:center;gap:13px}.ss-language{display:flex;border:1px solid var(--ss-line);padding:3px}.ss-language button{border:0;background:transparent;padding:7px 8px;font-size:10px;cursor:pointer}.ss-language button.active{background:var(--ss-green);color:white}.ss-cart-button{border:0;background:transparent;cursor:pointer}.ss-cart-button b{display:inline-grid;place-items:center;min-width:20px;height:20px;margin-left:4px;border-radius:20px;background:var(--ss-green);color:white;font-size:10px}.ss-hero{min-height:calc(100vh - 76px);display:grid;grid-template-columns:.9fr 1.1fr;align-items:center;gap:55px;width:min(1180px,calc(100% - 48px));margin:auto;padding:55px 0}.ss-hero-copy h1,.ss-heading h2,.ss-story h2,.ss-modal h2,.ss-order h2{font:400 clamp(42px,5.5vw,76px)/1 Georgia,serif;letter-spacing:-.045em;margin:0 0 24px}.ss-hero-copy>p:not(.ss-eyebrow){max-width:560px;color:var(--ss-muted);font-size:17px;line-height:1.75}.ss-eyebrow{font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--ss-green);margin:0 0 16px}.ss-hero-copy>div{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}.ss-button{min-height:48px;padding:0 20px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--ss-ink);background:transparent;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}.ss-button.primary{background:var(--ss-green);border-color:var(--ss-green);color:white}.ss-button.ghost{background:transparent}.ss-hero-media{height:650px;position:relative;overflow:hidden;background:#d8c7b3}.ss-hero-media span{position:absolute;right:18px;bottom:16px;padding:8px 10px;background:rgba(255,255,255,.85);font-size:10px;letter-spacing:.1em}.ss-fallback{width:100%;height:100%;display:grid;place-items:center;color:white;font:600 25px Georgia,serif}.ss-section{width:min(1180px,calc(100% - 48px));margin:auto;padding:110px 0}.ss-heading{display:grid;grid-template-columns:1.2fr .8fr;gap:50px;align-items:end}.ss-heading h2,.ss-story h2{font-size:clamp(38px,4.5vw,58px)}.ss-heading>p{color:var(--ss-muted);line-height:1.75}.ss-filters{display:flex;gap:8px;flex-wrap:wrap;margin:38px 0 28px}.ss-filters button{padding:10px 15px;border:1px solid var(--ss-line);background:transparent;cursor:pointer}.ss-filters button.active{background:var(--ss-green);color:white}.ss-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:34px 18px}.ss-card-image{width:100%;aspect-ratio:1/1.06;position:relative;padding:0;border:0;background:#ddd0bf;overflow:hidden;cursor:pointer}.ss-card-image>span{position:absolute;left:12px;top:12px;padding:7px 9px;background:var(--ss-paper);font-size:9px;font-weight:800;text-transform:uppercase}.ss-card>div{padding-top:17px}.ss-card small{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ss-green)}.ss-card h3{font:400 25px Georgia,serif;margin:8px 0}.ss-card p{color:var(--ss-muted);line-height:1.6;font-size:14px;min-height:67px}.ss-card footer{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--ss-line);padding-top:14px}.ss-card footer strong{font-size:13px}.ss-card footer button{border:0;background:transparent;font-size:11px;font-weight:800;cursor:pointer}.ss-story{padding:110px max(24px,calc((100vw - 1180px)/2));background:#5f6949;color:white;display:grid;grid-template-columns:.9fr 1.1fr;gap:80px}.ss-story>div>p:not(.ss-eyebrow){line-height:1.8;color:rgba(255,255,255,.75)}.ss-story .ss-eyebrow{color:#dbe2c6}.ss-benefits{display:grid;grid-template-columns:1fr 1fr}.ss-benefits article{padding:25px;border-left:1px solid rgba(255,255,255,.2);border-bottom:1px solid rgba(255,255,255,.2)}.ss-benefits span{font-size:10px;opacity:.6}.ss-benefits h3{font:400 22px Georgia,serif}.ss-benefits p{font-size:13px;line-height:1.6;opacity:.75}.ss-footer{padding:65px max(24px,calc((100vw - 1180px)/2));background:#2f2925;color:white;display:flex;justify-content:space-between;gap:50px}.ss-footer>div{display:flex;gap:20px;max-width:610px}.ss-footer img{width:86px;height:86px;border-radius:8px}.ss-footer h2{font:400 34px Georgia,serif;margin:0 0 9px}.ss-footer p{color:rgba(255,255,255,.65);line-height:1.7}.ss-footer nav{display:flex;flex-direction:column;gap:12px;font-size:13px}.ss-overlay{position:fixed;inset:0;z-index:100;background:rgba(24,20,17,.64);display:grid;place-items:center;padding:20px}.ss-modal{width:min(1040px,100%);max-height:94vh;overflow:auto;background:var(--ss-paper);display:grid;grid-template-columns:.9fr 1.1fr;position:relative}.ss-close{position:absolute;right:14px;top:14px;z-index:3;width:38px;height:38px;border:0;border-radius:50%;background:white;font-size:24px;cursor:pointer}.ss-modal-image{min-height:650px;background:#d8c7b3}.ss-modal-body{padding:58px}.ss-modal-body>small{font-size:10px;letter-spacing:.1em;color:var(--ss-green)}.ss-modal-body h2{font-size:44px;margin-top:10px}.ss-modal-body>p{color:var(--ss-muted);line-height:1.7}.ss-label{display:block;margin:24px 0 9px;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}.ss-colors,.ss-pages,.ss-choices{display:flex;gap:8px;flex-wrap:wrap}.ss-colors button,.ss-pages button,.ss-choices button{border:1px solid var(--ss-line);background:transparent;padding:10px 12px;cursor:pointer}.ss-colors button{display:flex;align-items:center;gap:7px}.ss-colors i{width:18px;height:18px;border-radius:50%}.ss-colors button.active,.ss-pages button.active,.ss-choices button.active{border-color:var(--ss-green);box-shadow:inset 0 0 0 1px var(--ss-green)}.ss-choices button{flex:1;display:flex;flex-direction:column;align-items:flex-start}.ss-choices small{color:var(--ss-muted);margin-top:5px}.ss-two{display:grid;grid-template-columns:1fr 1fr;gap:20px}.ss-two input{width:72px;height:48px;text-align:center;font:400 25px Georgia,serif;border:1px solid var(--ss-line);background:white}.ss-two label small{display:block;color:var(--ss-muted);font-size:10px;margin-top:6px}.ss-modal-total{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--ss-line);margin-top:30px;padding-top:22px}.ss-modal-total div{display:flex;flex-direction:column}.ss-modal-total strong{font:400 27px Georgia,serif}.ss-drawer{position:absolute;right:0;top:0;height:100%;width:min(480px,100%);background:var(--ss-paper);display:flex;flex-direction:column}.ss-drawer>header{display:flex;justify-content:space-between;padding:25px;border-bottom:1px solid var(--ss-line)}.ss-drawer h2{font:400 31px Georgia,serif;margin:0}.ss-drawer header button{border:0;background:transparent;font-size:25px}.ss-cart-list{flex:1;overflow:auto;padding:20px}.ss-cart-list>article{display:grid;grid-template-columns:105px 1fr;gap:15px;padding:15px 0;border-bottom:1px solid var(--ss-line)}.ss-cart-img{height:125px}.ss-cart-list h3{font:400 19px Georgia,serif;margin:0 0 7px}.ss-cart-list p{font-size:12px;color:var(--ss-muted)}.ss-cart-list footer{display:flex;align-items:center;gap:8px;margin-top:12px}.ss-cart-list footer button{border:1px solid var(--ss-line);background:transparent;min-width:28px;height:28px;cursor:pointer}.ss-cart-list footer button:last-child{border:0;margin-left:auto;font-size:10px}.ss-drawer-footer{padding:22px;border-top:1px solid var(--ss-line)}.ss-drawer-footer>div{display:flex;justify-content:space-between;margin-bottom:16px}.ss-drawer-footer strong{font:400 25px Georgia,serif}.ss-drawer-footer .ss-button{width:100%}.ss-order{width:min(560px,100%);background:var(--ss-paper);padding:48px;position:relative}.ss-order h2{font-size:44px}.ss-order form{display:grid;gap:13px}.ss-order label{display:grid;gap:6px;font-size:11px;font-weight:700}.ss-order input,.ss-order textarea{width:100%;border:1px solid var(--ss-line);background:white;padding:12px}.ss-order textarea{min-height:90px;resize:vertical}.ss-order .ss-button{width:100%}.ss-error{color:#9d3328;font-size:12px}
+      @media(max-width:900px){.ss-header{grid-template-columns:1fr auto}.ss-header nav{display:none}.ss-hero{grid-template-columns:1fr;padding-top:60px}.ss-hero-media{height:560px}.ss-grid{grid-template-columns:1fr 1fr}.ss-heading,.ss-story{grid-template-columns:1fr}.ss-modal{grid-template-columns:1fr}.ss-modal-image{min-height:430px}.ss-modal-body{padding:35px}}
+      @media(max-width:620px){.ss-header{height:68px;padding:0 16px}.ss-brand span{font-size:22px}.ss-brand img{width:34px;height:34px}.ss-language{display:none}.ss-hero,.ss-section{width:calc(100% - 28px)}.ss-hero{gap:28px;padding:40px 0}.ss-hero-copy h1{font-size:45px}.ss-hero-media{height:470px}.ss-section{padding:75px 0}.ss-grid{grid-template-columns:1fr}.ss-card p{min-height:0}.ss-story{padding:75px 18px;gap:40px}.ss-benefits{grid-template-columns:1fr}.ss-footer{flex-direction:column;padding:55px 18px}.ss-footer>div{flex-direction:column}.ss-modal-body{padding:28px 20px}.ss-modal-image{min-height:360px}.ss-two{grid-template-columns:1fr}.ss-modal-total{align-items:flex-end}.ss-order{padding:42px 20px}.ss-overlay{padding:8px}.ss-actions{gap:4px}}
+    `}</style>
+  </main>;
 }
