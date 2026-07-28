@@ -10,7 +10,7 @@
       "name": {"uz": "Traveler Calendar g‘ilofi", "en": "Traveler Calendar Cover", "ru": "Обложка Traveler Calendar"},
       "description": {"uz": "Bog‘ichli, ichki cho‘ntakli va almashtiriladigan daftar uchun mo‘ljallangan yumshoq charm g‘ilof.", "en": "A soft leather cover with a cord closure, inner pockets and space for a replaceable notebook insert.", "ru": "Мягкая кожаная обложка со шнурком, внутренними карманами и местом для сменного блокнота."},
       "basePrice": 189000,
-      "image": "/products/leather-calendar.jpg",
+      "image": "https://images.unsplash.com/photo-1709039549252-179925870591?auto=format&fit=crop&fm=jpg&q=82&w=1400",
       "size": "A5",
       "badge": {"uz": "Yangi", "en": "New", "ru": "Новинка"},
       "colors": [
@@ -31,7 +31,7 @@
       "name": {"uz": "Artisan Wrap g‘ilofi", "en": "Artisan Wrap Cover", "ru": "Обложка Artisan Wrap"},
       "description": {"uz": "Tabiiy charm teksturasi va uzun bog‘ichi bilan kundalik olib yurishga mos klassik model.", "en": "A classic everyday model with natural leather texture and a long wrap-around cord.", "ru": "Классическая модель на каждый день с натуральной фактурой кожи и длинным шнурком."},
       "basePrice": 169000,
-      "image": "https://images.unsplash.com/photo-1709039549252-179925870591?auto=format&fit=crop&fm=jpg&q=82&w=1400",
+      "image": "https://images.unsplash.com/photo-1709988795057-a13a7a612046?auto=format&fit=crop&fm=jpg&q=82&w=1400",
       "size": "A6",
       "badge": {"uz": "Bestseller", "en": "Bestseller", "ru": "Бестселлер"},
       "colors": [
@@ -52,7 +52,7 @@
       "name": {"uz": "Minimal Fold g‘ilofi", "en": "Minimal Fold Cover", "ru": "Обложка Minimal Fold"},
       "description": {"uz": "Sodda konstruksiya, tekis qirralar va yengil format — kundalik reja va qaydlar uchun.", "en": "Clean construction, neat edges and a light format for everyday planning and notes.", "ru": "Лаконичная конструкция, ровные края и лёгкий формат для ежедневных планов и заметок."},
       "basePrice": 179000,
-      "image": "https://images.unsplash.com/photo-1709988795057-a13a7a612046?auto=format&fit=crop&fm=jpg&q=82&w=1400",
+      "image": "https://images.unsplash.com/photo-1680576555782-2010a9c394ae?auto=format&fit=crop&fm=jpg&q=82&w=1400",
       "size": "A6",
       "colors": [
         {"id": "olive", "name": {"uz": "Zaytun", "en": "Olive", "ru": "Оливковый"}, "hex": "#687052"},
@@ -72,7 +72,7 @@
       "name": {"uz": "Clip Journal g‘ilofi", "en": "Clip Journal Cover", "ru": "Обложка Clip Journal"},
       "description": {"uz": "Metall klipsli aksent va mustahkam charm bilan noodatiy, sovg‘abop model.", "en": "A distinctive gift-ready model with a metal clip accent and durable leather.", "ru": "Необычная подарочная модель с металлическим акцентом и прочной кожей."},
       "basePrice": 209000,
-      "image": "https://images.unsplash.com/photo-1680576555782-2010a9c394ae?auto=format&fit=crop&fm=jpg&q=82&w=1400",
+      "image": "https://images.unsplash.com/photo-1696594601362-c952c6a9b2e2?auto=format&fit=crop&fm=jpg&q=82&w=1400",
       "size": "A5",
       "colors": [
         {"id": "amber", "name": {"uz": "Qahrabo", "en": "Amber", "ru": "Янтарный"}, "hex": "#a66c3f"},
@@ -92,7 +92,7 @@
       "name": {"uz": "Refill Lined A5", "en": "Refill Lined A5", "ru": "Сменный блокнот Lined A5"},
       "description": {"uz": "Charm g‘ilof ichiga mos, chiziqli va yengil almashtiriladigan ichki daftar.", "en": "A lined, lightweight and replaceable notebook insert designed for leather covers.", "ru": "Лёгкий сменный блокнот в линейку, подходящий для кожаных обложек."},
       "basePrice": 49000,
-      "image": "https://images.unsplash.com/photo-1709988795057-a13a7a612046?auto=format&fit=crop&fm=jpg&q=82&w=1400",
+      "image": "https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?auto=format&fit=crop&fm=jpg&q=82&w=1400",
       "size": "A5",
       "pages": 96,
       "pageType": "lined",
@@ -108,7 +108,7 @@
       "name": {"uz": "Refill Dotted A6", "en": "Refill Dotted A6", "ru": "Сменный блокнот Dotted A6"},
       "description": {"uz": "Bullet journal va erkin rejalashtirish uchun nuqtali A6 ichki daftar.", "en": "A dotted A6 insert for bullet journaling and flexible planning.", "ru": "Сменный блокнот A6 в точку для bullet journal и свободного планирования."},
       "basePrice": 39000,
-      "image": "https://images.unsplash.com/photo-1709039549252-179925870591?auto=format&fit=crop&fm=jpg&q=82&w=1400",
+      "image": "https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&fm=jpg&q=82&w=1400",
       "size": "A6",
       "pages": 80,
       "pageType": "dotted",
