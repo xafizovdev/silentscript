@@ -1,6 +1,6 @@
 {
   "name": "silent-script-store",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@vercel/blob": "^2.3.0",
+    "@vercel/blob": "2.6.1",
     "next": "16.2.11",
     "react": "19.2.0",
     "react-dom": "19.2.0"
