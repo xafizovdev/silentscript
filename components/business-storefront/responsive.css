@@ -1,0 +1,84 @@
+@media (max-width: 1180px) {
+  .ex-header nav { display: none; }
+  .ex-header { grid-template-columns: 1fr auto; }
+  .ex-menu-button { display: grid; }
+  .ex-product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ex-builder-grid { grid-template-columns: 1fr 1fr; }
+  .ex-summary { grid-column: 1 / -1; min-height: 0; }
+  .ex-summary__price { margin-top: 12px; }
+  .ex-footer__main { grid-template-columns: 1.4fr repeat(3, .75fr); gap: 35px; }
+}
+
+@media (max-width: 850px) {
+  .ex-topbar { justify-content: center; }
+  .ex-topbar > div { display: none; }
+  .ex-header { height: 66px; padding-inline: 18px; }
+  .ex-logo { font-size: 22px; }
+  .ex-logo__mark { width: 25px; height: 25px; }
+  .ex-order-button { display: none; }
+  .ex-hero { display: flex; flex-direction: column; }
+  .ex-hero__photo { order: 1; min-height: 390px; background-position: center; }
+  .ex-hero__copy { order: 2; padding: 45px 24px 52px; }
+  .ex-hero h1 { font-size: clamp(46px, 12vw, 65px); }
+  .ex-products, .ex-builder, .ex-story, .ex-process, .ex-reviews { width: calc(100% - 36px); }
+  .ex-product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ex-builder { padding: 34px 22px; }
+  .ex-builder-grid { grid-template-columns: 1fr; }
+  .ex-preview { min-height: 390px; }
+  .ex-summary { grid-column: auto; }
+  .ex-values { grid-template-columns: repeat(2, 1fr); gap: 25px 0; }
+  .ex-values article:nth-child(2) { border-right: 0; }
+  .ex-story { grid-template-columns: 1fr; gap: 44px; padding: 78px 0; }
+  .ex-story__media { min-height: 460px; }
+  .ex-process__grid { grid-template-columns: 1fr; }
+  .ex-process__grid article, .ex-process__grid article:not(:first-child) { padding: 25px 0; border-right: 0; border-bottom: 1px solid var(--ex-border); }
+  .ex-reviews__grid { grid-template-columns: 1fr; }
+  .ex-information { grid-template-columns: 1fr; gap: 42px; padding-inline: 18px; }
+  .ex-cta { align-items: flex-start; flex-direction: column; }
+  .ex-footer__main { grid-template-columns: 1.4fr 1fr 1fr; }
+  .ex-footer__main > div:last-child { display: none; }
+}
+
+@media (max-width: 560px) {
+  .ex-topbar { min-height: 29px; padding-inline: 14px; font-size: 8px; }
+  .ex-header { padding-inline: 14px; }
+  .ex-logo { gap: 8px; font-size: 20px; }
+  .ex-language { display: none; }
+  .ex-hero__photo { min-height: 300px; }
+  .ex-hero__copy { padding: 34px 18px 43px; }
+  .ex-hero h1 { font-size: 47px; }
+  .ex-hero__text { font-size: 13px; }
+  .ex-hero__copy > button { width: 100%; }
+  .ex-products, .ex-builder, .ex-story, .ex-process, .ex-reviews { width: calc(100% - 20px); }
+  .ex-products { padding-top: 50px; }
+  .ex-heading h2 { font-size: 34px; }
+  .ex-product-grid { grid-template-columns: 1fr; }
+  .ex-product-card { min-height: 310px; }
+  .ex-product-visual { height: 165px; }
+  .ex-builder { padding: 29px 15px; }
+  .ex-size-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ex-preview { min-height: 330px; gap: 22px; }
+  .ex-notebook--large { width: 132px; height: 213px; }
+  .ex-side { width: 44px; height: 190px; }
+  .ex-values { grid-template-columns: 1fr; padding-inline: 20px; }
+  .ex-values article { padding: 18px 0; border-right: 0; border-bottom: 1px solid rgba(255,255,255,.15); }
+  .ex-values article:last-child { border-bottom: 0; }
+  .ex-story__media { min-height: 360px; }
+  .ex-story__copy h2 { font-size: 41px; }
+  .ex-reviews blockquote { font-size: 19px; }
+  .ex-information__policy { padding: 25px 20px; }
+  .ex-cta { padding-inline: 18px; }
+  .ex-cta > button { width: 100%; }
+  .ex-footer { padding-inline: 18px; }
+  .ex-footer__main { grid-template-columns: 1fr 1fr; gap: 34px 20px; }
+  .ex-footer__main > div:first-child { grid-column: 1 / -1; }
+  .ex-footer__bottom { align-items: flex-start; flex-direction: column; }
+  .ex-cart { width: 100%; }
+  .ex-checkout { padding: 31px 18px 22px; }
+  .ex-checkout form { grid-template-columns: 1fr; }
+  .ex-checkout label { grid-column: 1 !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
