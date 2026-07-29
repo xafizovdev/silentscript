@@ -1,7 +1,5 @@
-import "@/components/storefront/storefront.css";
-import "@/components/storefront/polish.css";
-import Storefront from "@/components/storefront/Storefront";
+import ExactStorefront from "@/components/exact-storefront/ExactStorefront";
 
 export default function HomePage() {
-  return <Storefront />;
+  return <ExactStorefront />;
 }
