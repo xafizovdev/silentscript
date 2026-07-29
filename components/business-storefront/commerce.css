@@ -1,0 +1,68 @@
+.ex-heading { max-width: 730px; margin: 0 auto 34px; text-align: center; }
+.ex-heading > p { margin-bottom: 10px; color: var(--ex-olive); font-size: 9px; font-weight: 800; letter-spacing: .18em; }
+.ex-heading h2 { margin-bottom: 10px; font-size: clamp(30px, 3.4vw, 47px); line-height: 1.04; letter-spacing: -.035em; }
+.ex-heading > span { display: block; max-width: 600px; margin: 0 auto; color: var(--ex-muted); font-size: 12px; line-height: 1.65; }
+
+.ex-products { width: min(1280px, calc(100% - 48px)); margin: 0 auto; padding: 58px 0 42px; scroll-margin-top: 82px; }
+.ex-product-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 13px; }
+.ex-product-card { min-width: 0; min-height: 298px; position: relative; padding: 18px 14px 15px; display: flex; flex-direction: column; align-items: center; border: 1px solid var(--ex-border); border-radius: 10px; background: rgba(255,255,255,.34); text-align: center; transition: transform .22s ease, box-shadow .22s ease, background .22s ease; }
+.ex-product-card:hover { transform: translateY(-4px); background: rgba(255,255,255,.72); box-shadow: 0 18px 44px rgba(62,48,38,.09); }
+.ex-badge { position: absolute; z-index: 4; left: 10px; top: 10px; padding: 5px 9px; border-radius: 999px; background: var(--ex-olive); color: white; font: 700 8px var(--ex-sans); }
+.ex-product-visual { width: 100%; height: 154px; position: relative; display: grid; place-items: center; }
+.ex-product-card h3 { min-height: 36px; margin: 4px 0 5px; display: flex; align-items: center; font-size: 16px; line-height: 1.1; }
+.ex-product-card p { margin-bottom: 12px; font-size: 12px; }
+.ex-product-card p small { color: var(--ex-muted); font-size: 9px; }
+.ex-product-card > button { min-width: 94px; height: 31px; margin-top: auto; padding: 0 15px; border: 1px solid #847e74; border-radius: 999px; background: transparent; cursor: pointer; font-size: 9px; transition: .2s; }
+.ex-product-card > button:hover { background: var(--ex-olive); border-color: var(--ex-olive); color: white; }
+.ex-plus { position: absolute; right: 19%; bottom: 15px; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: #4e5a38; color: white; font-size: 20px; line-height: 1; }
+
+.ex-notebook { width: 72px; height: 112px; position: relative; border-radius: 3px 5px 5px 3px; background: linear-gradient(90deg, rgba(0,0,0,.14) 0 9%, transparent 9% 100%), linear-gradient(145deg, color-mix(in srgb, var(--cover) 93%, white 7%), color-mix(in srgb, var(--cover) 84%, black 16%)); box-shadow: 5px 7px 13px rgba(43,30,23,.14); }
+.ex-notebook--passport { width: 62px; height: 100px; }
+.ex-notebook__spine { position: absolute; top: 0; bottom: 0; left: 9px; width: 1px; background: rgba(255,255,255,.1); box-shadow: 1px 0 rgba(0,0,0,.16); }
+.ex-notebook__strap { position: absolute; left: -5px; right: -5px; top: 54%; height: 3px; background: color-mix(in srgb, var(--cover) 64%, black 36%); box-shadow: 0 1px 1px rgba(0,0,0,.25); }
+.ex-notebook__edge { position: absolute; top: 4px; bottom: 4px; right: -2px; width: 3px; border-radius: 0 2px 2px 0; background: rgba(255,255,255,.18); }
+.ex-notebook__stitch { position: absolute; inset: 5px; border: 1px dashed rgba(255,255,255,.16); border-radius: 2px; }
+
+.ex-builder { width: min(1280px, calc(100% - 48px)); margin: 12px auto 72px; padding: 42px 34px 36px; border: 1px solid var(--ex-border); border-radius: 12px; background: rgba(255,255,255,.30); scroll-margin-top: 82px; }
+.ex-builder .ex-heading { margin-bottom: 35px; }
+.ex-builder-grid { display: grid; grid-template-columns: 1.1fr .9fr .88fr; align-items: stretch; gap: 34px; }
+.ex-options { padding-right: 8px; }
+.ex-options fieldset { margin: 0 0 25px; padding: 0; border: 0; }
+.ex-options fieldset:last-child { margin-bottom: 0; }
+.ex-options legend { margin-bottom: 11px; font: 500 16px var(--ex-serif); }
+.ex-size-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.ex-size-options button { min-height: 52px; padding: 8px 9px; display: grid; gap: 3px; border: 1px solid #aaa196; border-radius: 5px; background: transparent; cursor: pointer; text-align: left; }
+.ex-size-options button strong { font-size: 10px; }
+.ex-size-options button span { color: var(--ex-muted); font-size: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ex-size-options button.is-active, .ex-paper-options button.is-active { background: var(--ex-olive); border-color: var(--ex-olive); color: white; }
+.ex-size-options button.is-active span { color: rgba(255,255,255,.72); }
+.ex-color-options { display: flex; flex-wrap: wrap; gap: 9px; }
+.ex-color-options button { min-width: 44px; padding: 0; display: grid; justify-items: center; gap: 5px; border: 0; background: transparent; cursor: pointer; }
+.ex-color-options button i { width: 31px; height: 31px; display: block; border-radius: 50%; border: 1px solid rgba(0,0,0,.15); box-shadow: inset 0 1px 4px rgba(255,255,255,.22), 0 0 0 3px transparent; }
+.ex-color-options button span { max-width: 58px; color: var(--ex-muted); font-size: 7px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ex-color-options button.is-active i { box-shadow: inset 0 1px 4px rgba(255,255,255,.22), 0 0 0 2px var(--ex-paper), 0 0 0 3px var(--ex-ink); }
+.ex-paper-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; max-width: 330px; }
+.ex-paper-options button { min-height: 36px; border: 1px solid #a8a095; border-radius: 4px; background: transparent; cursor: pointer; font-size: 9px; }
+.ex-preview { min-height: 420px; position: relative; display: flex; align-items: center; justify-content: center; gap: 34px; border-radius: 10px; background: radial-gradient(circle at 50% 38%, rgba(255,255,255,.86), transparent 52%), #ece5db; overflow: hidden; }
+.ex-preview::after { content: ""; position: absolute; left: 12%; right: 12%; bottom: 38px; height: 22px; border-radius: 50%; background: rgba(70,50,37,.11); filter: blur(11px); }
+.ex-notebook--large { width: 157px; height: 251px; z-index: 2; border-radius: 5px 8px 8px 5px; box-shadow: 10px 16px 29px rgba(54,35,25,.19); }
+.ex-notebook--large.ex-notebook--passport { width: 128px; height: 220px; }
+.ex-notebook--large .ex-notebook__spine { left: 14px; }
+.ex-notebook--large .ex-notebook__strap { left: -10px; right: -10px; height: 4px; }
+.ex-notebook--large .ex-notebook__stitch { inset: 8px; }
+.ex-side { width: 51px; height: 222px; z-index: 2; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: space-around; padding: 21px 0; border-radius: 28px; background: linear-gradient(90deg, color-mix(in srgb, var(--cover) 78%, black 22%), var(--cover), color-mix(in srgb, var(--cover) 70%, black 30%)); box-shadow: 6px 10px 19px rgba(45,31,23,.16); }
+.ex-side i { width: 4px; height: 26px; border-radius: 999px; background: var(--thread); box-shadow: 0 0 0 1px rgba(0,0,0,.13); }
+.ex-side span { position: absolute; left: -6px; right: -6px; top: 50%; height: 4px; background: var(--thread); }
+.ex-summary { min-height: 420px; padding: 27px 25px 22px; display: flex; flex-direction: column; border: 1px solid var(--ex-border); border-radius: 10px; background: rgba(251,248,242,.82); }
+.ex-summary__eyebrow { margin-bottom: 8px !important; color: var(--ex-olive); font-size: 8px; font-weight: 800; letter-spacing: .16em; }
+.ex-summary h3 { margin-bottom: 24px; font-size: 23px; }
+.ex-summary dl { margin: 0 0 22px; }
+.ex-summary dl div { display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--ex-soft-border); font-size: 11px; }
+.ex-summary dt { color: var(--ex-muted); }
+.ex-summary dd { margin: 0; font-weight: 650; }
+.ex-summary__price { margin: auto 0 18px; padding-top: 17px; display: flex; align-items: end; justify-content: space-between; border-top: 1px solid var(--ex-border); }
+.ex-summary__price span { color: var(--ex-muted); font-size: 10px; }
+.ex-summary__price strong { font: 600 20px var(--ex-serif); }
+.ex-summary > button { min-height: 48px; display: flex; align-items: center; justify-content: center; gap: 10px; border: 0; border-radius: 5px; background: var(--ex-olive); color: white; cursor: pointer; font-size: 11px; font-weight: 700; transition: .2s; }
+.ex-summary > button:hover { background: var(--ex-olive-dark); }
+.ex-summary > small { margin-top: 11px; color: var(--ex-muted); font-size: 8px; }
