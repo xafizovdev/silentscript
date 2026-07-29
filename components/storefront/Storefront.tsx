@@ -30,7 +30,6 @@ import {
   ShieldIcon,
   TelegramIcon,
 } from "./icons";
-import "./storefront.css";
 
 const TELEGRAM_ORDER = "thatswriter";
 const TELEGRAM_CHANNEL = "silentscriptuz";
@@ -326,7 +325,7 @@ export default function Storefront() {
       </section>
 
       <section className={styles.trustStrip} aria-label="Benefits">
-        {t.trust.map(([title, text]: [string, string], index: number) => {
+        {t.trust.map(([title, text]: readonly [string, string], index: number) => {
           const Icon = trustIcons[index] ?? ShieldIcon;
           return <article key={title}><Icon size={25}/><div><h3>{title}</h3><p>{text}</p></div></article>;
         })}
@@ -372,7 +371,7 @@ export default function Storefront() {
             <h2>{t.builderTitle}</h2>
             <p>{t.builderText}</p>
             <div className={styles.builderSteps}>
-              {t.builderSteps.map(([title, text]: [string, string], index: number) => <article key={title}><span>{index + 1}</span><div><h3>{title}</h3><p>{text}</p></div></article>)}
+              {t.builderSteps.map(([title, text]: readonly [string, string], index: number) => <article key={title}><span>{index + 1}</span><div><h3>{title}</h3><p>{text}</p></div></article>)}
             </div>
           </div>
           <div className={styles.builderCard}>
@@ -426,12 +425,12 @@ export default function Storefront() {
 
       <section id="process" className={styles.processSection}>
         <div className={styles.sectionHeader}><div><p className={styles.eyebrow}>{t.processEyebrow}</p><h2>{t.processTitle}</h2></div></div>
-        <div className={styles.processGrid}>{t.process.map(([title, text]: [string, string], index: number) => <article key={title}><span>0{index + 1}</span><h3>{title}</h3><p>{text}</p></article>)}</div>
+        <div className={styles.processGrid}>{t.process.map(([title, text]: readonly [string, string], index: number) => <article key={title}><span>0{index + 1}</span><h3>{title}</h3><p>{text}</p></article>)}</div>
       </section>
 
       <section className={styles.faqSection}>
         <div><p className={styles.eyebrow}>{t.faqEyebrow}</p><h2>{t.faqTitle}</h2></div>
-        <div className={styles.faqList}>{t.faq.map(([question, answer]: [string, string]) => <details key={question}><summary>{question}<PlusIcon size={18}/></summary><p>{answer}</p></details>)}</div>
+        <div className={styles.faqList}>{t.faq.map(([question, answer]: readonly [string, string]) => <details key={question}><summary>{question}<PlusIcon size={18}/></summary><p>{answer}</p></details>)}</div>
       </section>
 
       <footer id="contact" className={styles.footer}>
