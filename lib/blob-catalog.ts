@@ -13,24 +13,31 @@ function newest(blobs: ListedBlob[]): ListedBlob | undefined {
     .sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())[0];
 }
 
+/**
+ * A deployment may include an intentional catalog redesign or pricing migration.
+ * Prefer the bundled catalog while its version is newer than the saved blob.
+ * The next admin publish increments that version and regains control normally.
+ */
 export async function readPublishedCatalog(): Promise<Catalog> {
-  if (!blobStorageConfigured()) return defaultCatalog as Catalog;
+  const bundled = defaultCatalog as Catalog;
+  if (!blobStorageConfigured()) return bundled;
 
   try {
     const result = await list({ prefix: CATALOG_PREFIX, limit: 100 });
     const blob = newest(result.blobs);
-    if (!blob) return defaultCatalog as Catalog;
+    if (!blob) return bundled;
 
     const response = await fetch(`${blob.url}?v=${encodeURIComponent(blob.etag)}`, {
       cache: "no-store",
       headers: { Accept: "application/json" },
     });
-    if (!response.ok) return defaultCatalog as Catalog;
+    if (!response.ok) return bundled;
 
     const parsed: unknown = await response.json();
-    return isCatalog(parsed) ? parsed : (defaultCatalog as Catalog);
+    if (!isCatalog(parsed)) return bundled;
+    return parsed.version >= bundled.version ? parsed : bundled;
   } catch {
-    return defaultCatalog as Catalog;
+    return bundled;
   }
 }
 
