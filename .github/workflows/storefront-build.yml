@@ -3,8 +3,6 @@ name: Storefront production build
 on:
   pull_request:
     branches: [main]
-  push:
-    branches: [redesign/pro-storefront-v6]
 
 permissions:
   contents: read
