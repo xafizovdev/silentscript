@@ -1,0 +1,1 @@
+export const STOREFRONT_RELEASE = "2026.07.29-v6";
