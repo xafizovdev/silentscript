@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
-import "./storefront-1.css";
-import "./storefront-2.css";
-import "./storefront-3.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://silentscript.vercel.app"),
