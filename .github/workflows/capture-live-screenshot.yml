@@ -1,6 +1,8 @@
 name: Capture live storefront screenshots
 
 on:
+  pull_request:
+    branches: [main]
   push:
     branches: [chore/capture-live-screenshot]
 
