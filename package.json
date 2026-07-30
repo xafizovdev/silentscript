@@ -3,13 +3,13 @@
   "version": "4.0.0",
   "private": true,
   "scripts": {
-    "predev": "node scripts/generate-storefront.mjs",
+    "predev": "node scripts/generate-storefront.mjs && node scripts/verify-storefront.mjs",
     "dev": "next dev",
-    "prebuild": "node scripts/generate-storefront.mjs",
+    "prebuild": "node scripts/generate-storefront.mjs && node scripts/verify-storefront.mjs",
     "build": "next build",
     "postinstall": "node scripts/generate-storefront.mjs",
     "start": "next start",
-    "typecheck": "node scripts/generate-storefront.mjs && tsc --noEmit"
+    "typecheck": "node scripts/generate-storefront.mjs && node scripts/verify-storefront.mjs && tsc --noEmit"
   },
   "dependencies": {
     "@vercel/blob": "2.6.1",
