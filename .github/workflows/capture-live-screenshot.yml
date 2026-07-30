@@ -1,0 +1,35 @@
+name: Capture live storefront screenshots
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [chore/capture-live-screenshot]
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Capture desktop screenshot
+        run: |
+          google-chrome --headless=new --no-sandbox --disable-gpu --hide-scrollbars --window-size=1440,1000 --screenshot=silentscript-desktop.png https://silentscript.vercel.app
+
+      - name: Capture mobile screenshot
+        run: |
+          google-chrome --headless=new --no-sandbox --disable-gpu --hide-scrollbars --window-size=390,844 --screenshot=silentscript-mobile.png https://silentscript.vercel.app
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: silentscript-live-screenshots
+          path: |
+            silentscript-desktop.png
+            silentscript-mobile.png
+          if-no-files-found: error
