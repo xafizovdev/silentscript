@@ -1,5 +1,5 @@
-import ExactStorefront from "@/components/exact-storefront/ExactStorefront";
+import BusinessStorefront from "@/components/business-storefront/BusinessStorefront";
 
 export default function HomePage() {
-  return <ExactStorefront />;
+  return <BusinessStorefront />;
 }
