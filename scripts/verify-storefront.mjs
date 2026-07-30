@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 
 const checks = [
-  ["components/exact-storefront/ExactStorefront.tsx", "Nima uchun Silent Script"],
+  ["components/exact-storefront/ExactStorefront.tsx", "NIMA UCHUN SILENT SCRIPT"],
   ["components/exact-storefront/exact.css", ".ex-benefits"],
 ];
 for (const [path, marker] of checks) {
