@@ -1,6 +1,6 @@
 {
-  "version": 100,
-  "updatedAt": "2026-07-29T17:30:00.000Z",
+  "version": 1000,
+  "updatedAt": "2026-07-30T04:55:00.000Z",
   "products": [
     {
       "id": "a5-trifold",
@@ -9,7 +9,7 @@
       "featured": true,
       "name": {"uz": "A5 Tri-Fold", "en": "A5 Tri-Fold", "ru": "A5 Tri-Fold"},
       "description": {"uz": "Uch qismli, kundalik foydalanish uchun qulay charm jurnal.", "en": "A practical three-fold leather journal for everyday use.", "ru": "Практичный кожаный ежедневник формата A5."},
-      "basePrice": 250000,
+      "basePrice": 150000,
       "image": "",
       "size": "A5",
       "badge": {"uz": "Eng mashhur", "en": "Bestseller", "ru": "Популярный"},
@@ -20,7 +20,7 @@
         {"id": "black", "name": {"uz": "Qora", "en": "Black", "ru": "Чёрный"}, "hex": "#222221"}
       ],
       "supportsInsert": true,
-      "insertPrice": 0,
+      "insertPrice": 100000,
       "insertPages": 96,
       "giftBoxPrice": 25000
     },
@@ -31,7 +31,7 @@
       "featured": false,
       "name": {"uz": "A6 Tri-Fold", "en": "A6 Tri-Fold", "ru": "A6 Tri-Fold"},
       "description": {"uz": "Ixcham va har kuni olib yurish uchun mos A6 charm jurnal.", "en": "A compact A6 leather journal for everyday carry.", "ru": "Компактный кожаный ежедневник A6."},
-      "basePrice": 210000,
+      "basePrice": 125000,
       "image": "",
       "size": "A6",
       "colors": [
@@ -41,7 +41,7 @@
         {"id": "black", "name": {"uz": "Qora", "en": "Black", "ru": "Чёрный"}, "hex": "#222221"}
       ],
       "supportsInsert": true,
-      "insertPrice": 0,
+      "insertPrice": 85000,
       "insertPages": 80,
       "giftBoxPrice": 25000
     },
@@ -70,7 +70,7 @@
       "featured": false,
       "name": {"uz": "Custom A5", "en": "Custom A5", "ru": "Custom A5"},
       "description": {"uz": "Rang va detallar siz uchun moslashtiriladigan A5 model.", "en": "A customizable A5 model made around your choices.", "ru": "Персонализируемая модель A5."},
-      "basePrice": 300000,
+      "basePrice": 200000,
       "image": "",
       "size": "A5",
       "colors": [
@@ -81,7 +81,7 @@
         {"id": "black", "name": {"uz": "Qora", "en": "Black", "ru": "Чёрный"}, "hex": "#222221"}
       ],
       "supportsInsert": true,
-      "insertPrice": 0,
+      "insertPrice": 100000,
       "insertPages": 96,
       "giftBoxPrice": 30000
     },
@@ -92,7 +92,7 @@
       "featured": false,
       "name": {"uz": "Custom A6", "en": "Custom A6", "ru": "Custom A6"},
       "description": {"uz": "Ixcham A6 model — rang va detallar siz uchun tanlanadi.", "en": "A compact customizable A6 journal.", "ru": "Компактная персонализируемая модель A6."},
-      "basePrice": 260000,
+      "basePrice": 175000,
       "image": "",
       "size": "A6",
       "colors": [
@@ -102,7 +102,7 @@
         {"id": "black", "name": {"uz": "Qora", "en": "Black", "ru": "Чёрный"}, "hex": "#222221"}
       ],
       "supportsInsert": true,
-      "insertPrice": 0,
+      "insertPrice": 85000,
       "insertPages": 80,
       "giftBoxPrice": 30000
     },
